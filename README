@@ -1,0 +1,26 @@
+"One Plugin to rule them all"
+
+This is an attempt to become the defacto solution for shopping cart 
+implementation in CakePHP. Not to say this in of itself will be the 
+best shopping cart around, but in fact give developers the resource
+to build their own custom shopping cart Application to their own
+specifications.
+
+Hopefully future versions of the brother development app, 'Mocha'
+will use future releases of this plugin as a part of it's core. For
+now this is a 1-stop plugin that provides you all the resources you 
+need to build a cart and nothing more, allowing you to extrapolate 
+from that point forwards.
+
+Pending Features:
+ - Potential integration with UsersPlugin under development for 
+	Bakery 2.0
+ - Shopping cart session component
+ - Shopping cart session helper
+ - Shipping / Tax handling (feature RFC)
+ - Optional base table for standard products
+ - Payment gateway behavior
+ - Payment gateway api datasources (such as Google checkout and 
+	Paypal) that will work through the payment gateway behavior
+ - Administration tools, such as mass product uploading/editing
+	- Integration with CSV component for custom importing/exporting
