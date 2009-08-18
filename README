@@ -12,6 +12,12 @@ now this is a 1-stop plugin that provides you all the resources you
 need to build a cart and nothing more, allowing you to extrapolate 
 from that point forwards.
 
+"Title: ShoppingCart plugin for CakePHP
+Authors: Dean Sofer (ProLoser), Jesse Adams (techno-geek)
+
+CakePHP plugin that handles the management of order data in the session. Useful for shopping cart CakePHP applications. Will be used in the Mocha Shopping Cart project brought to you by DualTech Services, inc."
+
+
 Pending Features:
  - Potential integration with UsersPlugin under development for 
 	Bakery 2.0

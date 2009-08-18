@@ -1,19 +1,17 @@
 <?php
 
- 
 /**
  * Cart Session Component
  * Part of the ShoppingCart plugin
  *
  * @author 	Dean Sofer (ProLoser), Jesse Adams (techno-geek)
- * @version	0.3
+ * @version	0.2
  * @package	CakePHP Shopping Cart Plugin Suite
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  */
  
  class CartSessionComponent extends Object {
 
- 
 	var $components = array('Session');
 	/**
 	 * Used to determine wether or not the table should be used
@@ -73,8 +71,7 @@
 	 * @access public
 	 */
 	var $shipFlat = true;
-
- 
+	
     /**
 	 * Initializes the component, gets a reference to the controller 
 	 * and stores configuration options.
@@ -87,15 +84,13 @@
 	function initialize(&$controller, $options) {
         // saving the controller reference for later use
         $this->controller =& $controller;
-
- 
+		
 		if (isset($options['useTable'])) {
 			$this->useTable = $options['useTable'];
 		} else {
 			$this->useTable = $this->controller->{$this->controller->modelClass}->useTable;
 		}
-
- 
+		
 		if (isset($options['nameField'])) {
 			$this->nameField = $options['nameField'];
 		} else {
@@ -120,8 +115,7 @@
     //called before Controller::redirect()
     function beforeRedirect(&$controller, $url, $status=null, $exit=true) {
     }
-
- 
+	
 	/**
 	 * Creates a fresh new cart with empty information
 	 *
@@ -139,8 +133,7 @@
 			return $this->Session->delete('Order');
 		}
 	}
-
- 
+	
 	/**
 	 * Add's an item to the cart, requires a Product.id number or data
 	 *
@@ -163,14 +156,12 @@
 				}
 				$lineItem['Product'] = array_merge($data, $product[$this->controller->modelClass]);
 			} else {
-				// @TODO If statement seems useless, $lineItem is never used before it is overwritten
 				if ($this->Session->check('Order.LineItem.' . $data)) {
 						$lineItem = $this->Session->read('Order.LineItem.' . $data);
 				} else {
 					$product = $this->controller->{$this->controller->modelClass}->find('first', array('recursive' => -1, 'conditions'=>array('id'=>$data)));
 					if (!$product) {
 						return false;
-
 					}				
 					$lineItem['Product'] = $product['Product'];
 				}
@@ -178,15 +169,13 @@
 		} else {
 			$lineItem['Product'] = $product = $data;
 		}
-
- 
+		
 		// Get the list of line items in the cart
 		$lineItems = array();
 		if ($this->Session->check('Order.LineItem')) {
 			$lineItems = $this->Session->read('Order.LineItem');
 		}
-
- 
+		
 		// Check to see if the item is already in the cart
 		if(!empty($lineItems[$lineItem['Product']['id']])) {	
 			// The item already exists, just edit it
@@ -196,7 +185,7 @@
 					$match = $count;
 				}
 			}
- 
+
 			if ($match !== null) {
 				$quantity = $lineItems[$lineItem['Product']['id']]['Selection'][$match]['quantity'] += $quantity;
 				$returnValue = $this->updateItem($lineItem['Product']['id'], $match, $quantity);
@@ -204,27 +193,12 @@
 				$returnValue = $this->_addItemNew($lineItem, $attribs, $quantity, $lineItems);
 			}
 		} else {
-
-
-
-
-
-
-
-
-
-
-
-
-
 			$returnValue = $this->_addItemNew($lineItem, $attribs, $quantity, $lineItems);
 		}
-
- 
+		
 		return $returnValue;
 	}
-
- 
+	
 	/**
 	 * Private method to avoid code duplication. Used in $this->addItem()
 	 *
@@ -238,30 +212,28 @@
 	function _addItemNew($lineItem, $attribs = array(), $quantity, $lineItems) {
 		// Apply LineItem specific attributes
 		$selection = array();
-		// @TODO name and description to be removed from data array?
 		$selection['name'] = $lineItem['Product'][$this->nameField];
 		$selection['price'] = $lineItem['Product'][$this->priceField];
-		// @TODO code needs to be updated to cake compatible standards
 		$selection['description'] = ($this->descField) ? $lineItem['Product'][$this->descField] : null;
 		$selection['taxable'] = ($this->taxableField) ? $lineItem['Product'][$this->taxableField] : true;
 		$selection['quantity'] = $quantity;	
 		$selection['subtotal'] = $quantity * $selection['price'];	
 		$selection['attributes'] = $attribs;
- 
+
 		// Add the item to the main list
 		$lineItem['Selection'][] = $selection;
 		$lineItems[$lineItem['Product']['id']] = $lineItem;
- 
+			
 		$returnValue = $this->Session->write("Order.LineItem", $lineItems);
 		$this->calcTotal();
- 
+		
 		return $returnValue;
 	}
- 
+	
 	/**
 	 * Updates a specific cart item. If quantity is passed at 0 or less, item is deleted.
 	 * If $product information is passed, the Product array is updated (does not change lineItem price)
-	 * @TODO: I am unsure if I should have multiple actions perform at once (product info + quantity + price).
+	 * TODO: I am unsure if I should have multiple actions perform at once (product info + quantity + price).
 	 *
 	 * @param int $id LineItem id number
 	 * @param int $quantity
@@ -269,38 +241,29 @@
 	 * @return <success> boolean
 	 * @access public
 	 */
-	// @TODO $selectionCount is used for...?
 	function updateItem($id, $selectionCount, $quantity = false, $product = null) {
 		$returnValue = null;
-
- 
+		
 		// @TODO Handle the $product parameter
 /*		if (!empty($product)) {
 			$returnValue = $this->Session->write("Order.LineItem.$id.Product", $product);
-
 		}*/
- 
+		
 		if ($quantity <= 0) {
-			// @TODO $selection is undeclared at this point.
-			$returnValue = $this->removeItem($id, $selection);
+			$returnValue = $this->removeItem($id, $selectionCount);
 		}		
 		if ($quantity) {
 			$selection = $this->Session->read("Order.LineItem.$id.Selection");
-
- 
+			
 			$selection[$selectionCount]['subtotal'] = $quantity * $selection[$selectionCount]['price']; 
 			$selection[$selectionCount]['quantity'] = $quantity;
-
- 
+			
 			$returnValue = $this->Session->write("Order.LineItem.$id.Selection", $selection);
+			$this->calcTotal();
 		}
-
- 
-		$this->calcTotal();
 		return $returnValue;
 	}
-
- 
+	
 	/**
 	 * Removes a LineItem from the shopping cart
 	 *
@@ -308,16 +271,27 @@
 	 * @return <success> boolean
 	 * @access public
 	 */
-	// @TODO Update removeItem to work with selections
-	function removeItem($id, $selection = null) {
-		$returnValue = $this->Session->delete("Order.LineItem.$id");
-		$this->calcTotal();
+	// TODO Updated removeItem to work with selections
+	function removeItem($id, $selection) {
+		$returnValue = $this->Session->delete("Order.LineItem.$id.Selection.$selection");
+		
+		$selectionArray = $this->Session->read("Order.LineItem.$id.Selection");
 
- 
+		if (empty($selectionArray)) {
+			$this->Session->delete("Order.LineItem.$id");
+		}
+		
+		$lineItems = $this->Session->read("Order.LineItem");
+
+		if (empty($lineItems)) {
+			$this->resetCart();
+		} else {	
+			$this->calcTotal();
+		}
+		
 		return $returnValue;
 	}
-
- 
+	
 	/**
 	 * Returns the Order information for checkout
 	 *
@@ -332,8 +306,7 @@
 			return false;
 		}
 	}
-
- 
+	
 	/*
 	 * The setPaymentInfo function is a wrapper function to simply fill in both
 	 * shipping and billing information at once. If only $billingData is passed
@@ -346,16 +319,14 @@
 	 */
 	function setPaymentInfo($billingData, $shippingData = null) {
 		$this->setBillInfo($billingData);
-
- 
+		
 		if ($shippingData) {
 			$this->setShipInfo($shippingData);
 		} else {
 			$this->setShipInfo($billingData);
 		}
 	}
-
- 
+	
 	/**
 	 * Stores the customer billing address info
 	 *
@@ -366,8 +337,7 @@
 	function setBillInfo($data) {
 		return $this->Session->write('Order.Billing', $data);
 	}
-
- 
+	
 	/**
 	 * Stores the customer shipping address info
 	 *
@@ -378,8 +348,7 @@
 	function setShipInfo($data) {
 		return $this->Session->write('Order.Shipping', $data);
 	}
-
- 
+	
 	/**
 	 * Checks to make sure tax rate is a decimal and stores for use in calcTotal()
 	 *
@@ -391,13 +360,11 @@
 		// Ensures that percent values are changed to decimal
 		if ($taxRate > 1)
 			$taxRate = $taxRate / 100;
-
- 
+		
 		$this->taxRate = $taxRate;
 		$this->calcTotal();
 	}
-
- 
+	
 	/**
 	 * Checks to make sure shipping rate is a decimal if it's not a flat fee and 
 	 * stores for use in calcTotal()
@@ -411,13 +378,11 @@
 		// Ensures that percent values are changed to decimal
 		if (!$flat && $shipRate > 1)
 			$shipRate = $shipRate / 100;
-
- 
+	
 		$this->shipRate = $shipRate;
 		$this->calcTotal();
 	}
-
- 
+	
 	/**
 	 * Conveniance method for handling all shipping in one call
 	 *
@@ -430,8 +395,7 @@
 		$this->setShipRate($price);
 		$this->setShipInfo($info);
 	}
-
- 
+	
 	/**
 	 * This function takes the order out of the session, goes row by row totalling up
 	 * the prices into $subtotal, applying tax to individual products that are taxable = true,
@@ -444,49 +408,50 @@
 	function calcTotal() {
 		$order = $this->Session->read('Order');
 		$subtotal = 0;	
-
- 
+		
 		foreach ($order['LineItem'] as $id => $lineItem) {
- 
+			
 			$lineQuantity = 0;
 			$lineTotal = 0;
 			foreach ($lineItem['Selection'] as $count => $selection) {
 				$selectionTotal = $selection['price'] * $selection['quantity'];
-				// @TODO create a way to tax indidividual products vs all products
 /*				if ($selection['taxable'])
 					$selectionTotal += $selectionTotal * $this->taxRate;*/
 				$subtotal += $selectionTotal;
- 
+				
 				$lineQuantity += $selection['quantity'];
 				$lineTotal += $selectionTotal;
 			}
- 
+			
 			$totals = array(
 				'quantity' => $lineQuantity,
 				'subtotal' => $lineTotal,
+				'numAttribs' => count($selection['attributes']),
 			);
- 
+			
 			$this->Session->write('Order.LineItem.' . $id . '.Totals', $totals);
 		}
-
-		// @TODO create a way to tax indidividual products vs all products
+		
 		$tax = sprintf('%.2f', $subtotal * $this->taxRate);
-		// @TODO needs to be converted to cake acceptable coding standards
-		$shipping = ($this->shipFlat) ? $this->shipRate : $subtotal * $this->shipRate;
+		
+		$shipping = 0;
+		if ($this->shipRate > 0) {
+			$shipping = ($this->shipFlat) ? $this->shipRate : $subtotal * $this->shipRate;
+		} elseif (!empty($order['Totals']) && $order['Totals'] > 0) {
+			$shipping = $order['Totals']['shipping'];	
+		}
+		
 		$total = $subtotal + $tax + $shipping;
-
- 
+		
 		$data = array(
 			'subtotal' => $subtotal,
 			'tax' => $tax,
 			'shipping' => $shipping,
 			'total' => $total,
 		);
-
- 
+		
 		return $this->Session->write('Order.Totals', $data);
 	}
-
- 
+	
 }
 ?>
