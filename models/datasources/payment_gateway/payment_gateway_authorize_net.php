@@ -1,6 +1,6 @@
 <?php
 /**
- * Paypal DataSource
+ * Authorize.net DataSource
  *
  * Used for reading and writing to Twitter, through models.
  *
@@ -18,7 +18,7 @@
  * @license       http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 App::import('Core', 'HttpSocket');
-class PaypalSource extends DataSource {
+class AuthorizeNetSource extends PaymentGatewaySource {
 	protected $_schema = array(
 		'tweets' => array(
 			'id' => array(

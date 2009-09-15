@@ -47,23 +47,7 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 * @var array
 	 * @access protected
 	 */
-	var $_defaults = array();
-	/**
-	 * User Model
-	 *
-	 * @var array
-	 * @access protected
-	 */
-	var $userModel = false;
-	
-	/**
-	 * User Model
-	 *
-	 * @var array
-	 * @access protected
-	 */
-	var $User = null;
-	
+	var $_defaults = array();	
 	/**
 	 * User Model
 	 *
@@ -90,12 +74,39 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 * @access public
 	 */
 	function setup(&$Model, $settings) {
-		if (isset($settings['userModel']) && $settings['userModel']) {
-			$this->userModel = $Model->alias;
-			// Store the user model reference
-			$this->User = $Model;
-			$this->bindUserRelationships($Model);
+		$this->gateway = ConnectionManager::getDataSource($settings['gateway']);
+		if (isset($settings['logIpn']) && $settings['logIpn']) {
+			$this->logIpn = $settings['logIpn'];
 		}
+		//$this->bindRelationships($Model, $settings['gateway']);
+	}
+	
+	function beforeSave(&$Model, $created) {
+		if (!$this->_trigger('beforePayment')) {
+			return false;
+		}
+		if ($created) {
+			$gateway = $this->gateway;
+	        $response = $gateway->create($billing, $payment);
+		}
+		$this->_trigger('afterPayment');
+	}
+	
+	function beforeDelete(&$Model) {
+		if ($this->_trigger('beforeRefund')) {
+			return false;
+		}
+		$gateway = $this->gateway;
+	    $response = $gateway->delete($billing, $payment);
+	    $success = true;
+		$this->_trigger('afterRefund');
+		return $success;
+	}
+	
+	function beforeFind(&$Model, $results, $primary) {
+		
+		$gateway = $this->gateway;
+	    $response = $gateway->read($billing, $payment);
 	}
 	
 	/**
@@ -104,11 +115,24 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 * @return boolean success
 	 * @access public
 	 */
-	function bindUserRelationships(&$Model) {
-		$success = $Model->bindModel($this->relationships, false);
-		
+	function bindRelationships(&$Model, $gateway = null	) {
+		//$success = $Model->bindModel($this->relationships, false);
+		// @TODO Proper binding of relationships on initialization
+		$success = true;
 		return $success;
 	}
 	
+	/**
+	 * Checks if the developer declared the trigger in the model before calling it
+	 *
+	 * @param object $Model instance of model
+	 * @param string $trigger name of trigger to call
+	 * @access protected
+	 */
+	function _trigger(&$Model, $trigger) {
+		if (method_exists($Model, $trigger)) {
+			return call_user_func(array($Model, $trigger));
+		}
+	}
 }
 ?>

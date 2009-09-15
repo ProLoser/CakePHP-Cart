@@ -1,6 +1,6 @@
 <?php
 /**
- * Authorize.net DataSource
+ * Google Checkout DataSource
  *
  * Used for reading and writing to Twitter, through models.
  *
@@ -18,7 +18,7 @@
  * @license       http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 App::import('Core', 'HttpSocket');
-class AuthorizeNetSource extends DataSource {
+class GoogleCheckoutSource extends PyamentGatewaySource {
 	protected $_schema = array(
 		'tweets' => array(
 			'id' => array(
