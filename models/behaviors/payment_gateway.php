@@ -34,96 +34,22 @@
  * @subpackage    cake.cake.libs.model.behaviors
  */
 class PaymentGatewayBehavior extends ModelBehavior {
-
-	/**
-	 * Errors
-	 *
-	 * @var array
-	 */
-	var $errors = array();
-	/**
-	 * Defaults
-	 *
-	 * @var array
-	 * @access protected
-	 */
-	var $_defaults = array();	
-	/**
-	 * User Model
-	 *
-	 * @var array
-	 * @access protected
-	 */
-	var $triggers = array();
-
 	
-	var $relationships = array(
-		/*'belongsTo'=> array(
-			'Tax' => array('className' => 'Cart.CartTax'),				
-			'Shipping'=> array('className' => 'Cart.CartShipping'),
-		)*/
+	/**
+	 * Default settings for the behavior
+	 *
+	 * @var string
+	 */
+	var $settings = array(
+		'default' => null,
 	);
-	
 
-	/**
-	 * Initiate Installation behavior
-	 *
-	 * @param object $Model instance of model
-	 * @param array $fields array of configuration settings.
-	 * @return void
-	 * @access public
-	 */
 	function setup(&$Model, $settings) {
-		$this->gateway = ConnectionManager::getDataSource($settings['gateway']);
-		if (isset($settings['logIpn']) && $settings['logIpn']) {
-			$this->logIpn = $settings['logIpn'];
-		}
-		//$this->bindRelationships($Model, $settings['gateway']);
-	}
-	
-	function beforeSave(&$Model, $created) {
-		if (!$this->_trigger('beforePayment')) {
-			return false;
-		}
-		if ($created) {
-			$gateway = $this->gateway;
-	        $response = $gateway->create($billing, $payment);
-		}
-		$this->_trigger('afterPayment');
-	}
-	
-	function beforeDelete(&$Model) {
-		if ($this->_trigger('beforeRefund')) {
-			return false;
-		}
-		$gateway = $this->gateway;
-	    $response = $gateway->delete($billing, $payment);
-	    $success = true;
-		$this->_trigger('afterRefund');
-		return $success;
-	}
-	
-	function beforeFind(&$Model, $results, $primary) {
-		
-		$gateway = $this->gateway;
-	    $response = $gateway->read($billing, $payment);
+		$this->settings = array_merge($this->settings, $settings);
 	}
 	
 	/**
-	 * Bind all related models in the plugin to the User model
-	 *
-	 * @return boolean success
-	 * @access public
-	 */
-	function bindRelationships(&$Model, $gateway = null	) {
-		//$success = $Model->bindModel($this->relationships, false);
-		// @TODO Proper binding of relationships on initialization
-		$success = true;
-		return $success;
-	}
-	
-	/**
-	 * Checks if the developer declared the trigger in the model before calling it
+	 * If the developer declared the trigger in the model, call it
 	 *
 	 * @param object $Model instance of model
 	 * @param string $trigger name of trigger to call
@@ -133,6 +59,21 @@ class PaymentGatewayBehavior extends ModelBehavior {
 		if (method_exists($Model, $trigger)) {
 			return call_user_func(array($Model, $trigger));
 		}
+	}
+	
+	/**
+     * Verifies POST data given by the instant payment notification
+     *
+     * @param array $data Most likely directly $_POST given by the controller.
+     * @return boolean true | false depending on if data received is actually valid from paypal and not from some script monkey
+     */
+	public function validIpn(&$Model, $data, $gatewayConfig = null) {
+      if(!empty($data) && ($gatewayConfig || $this->settings['default'])){
+		App::import('Model', 'ConnectionManager', false);
+		$gateway =& ConnectionManager::getDataSource($gatewayConfig);
+        return $gateway->validIpn($data);
+      }
+      return false;
 	}
 }
 ?>

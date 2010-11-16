@@ -17,10 +17,64 @@ Authors: Dean Sofer (ProLoser), Jesse Adams (techno-geek)
 
 CakePHP plugin that handles the management of order data in the session. Useful for shopping cart CakePHP applications. Will be used in the Mocha Shopping Cart project brought to you by DualTech Services, inc."
 
+Structure:
+
+Components:
+ - Cart Session
+	- Helps track orders for standard carts
+	- Convenience only, not required
+ - Instant Payment Notification
+	- Processes ipn for multiple gateways
+	- Takes $gateway as an argument
+	- Relies on the PaymentGatewayBehavior at the model level
+	
+Behavior:
+ - PaymentGateway
+	- Binds different gateway datasources to the model for IPN and order processing
+	- Relies on the PaymentGatewayDatasource
+	
+Datasource:
+ - PaymentGateway
+	- Works as a wrapper for individual payment gateway datasources
+	- Standardizes the methods and data used for individual datasources
+	- Stores configurations of different payment gateways
+ 
+Installation:
+
+1. Add the gateway configurations to your <code>database.php</code>. 
+	You can use multiple configurations for the same gateway. The datasource and driver must be correct.
+<pre>
+var $paypal = array(        
+	'datasource' => 'Cart.PaymentGateway',
+	'driver' => 'Paypal',
+	'login' => 'standard_username',        
+	'password' => 'password',    
+);
+var $paypalDonations = array(        
+	'datasource' => 'Cart.PaymentGateway',
+	'driver' => 'Paypal',
+	'login' => 'donations_username',        
+	'password' => 'password',    
+);
+var $google = array(        
+	'datasource' => 'Cart.PaymentGateway',
+	'driver' => 'GoogleCheckout',
+	'login' => 'username',        
+	'password' => 'password',    
+);
+</pre>
+2. Bind the PaymentGateway behavior (currently the model doesn't matter)
+<pre>
+Class Order extends AppModel {
+	var $actsAs = array(
+		'Cart.PaymentGateway' => array(
+			'default' => 'paypal',
+		),
+	);
+}
+</pre
 
 Pending Features:
- - Potential integration with UsersPlugin under development for 
-	Bakery 2.0
  - Shopping cart session component
  - Shopping cart session helper
  - Shipping / Tax handling (feature RFC)
