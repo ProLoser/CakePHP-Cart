@@ -25,9 +25,7 @@ class Paypal extends PaymentGatewaySource {
 	 * @param array $data Most likely directly $_POST given by the controller.
 	 * @return boolean $valid depending on if data received is actually valid from paypal and not from some script monkey
 	 */
-	function isValid($data){
-		$this->Http =& new HttpSocket();
-		
+	function isValid($data){		
 		$data['cmd'] = '_notify-validate';
 		
 		if (isset($data['test_ipn'])) {

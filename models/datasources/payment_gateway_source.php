@@ -1,8 +1,13 @@
 <?php
-App::import('Core', array('HttpSocket'));
-
 class PaymentGatewaySource extends DataSource {
-  
+	/**
+	 * Description string for this Data Source.
+	 *
+	 * @var string
+	 * @access public
+	 */
+	var $description = 'Payment Gateway Datasource';
+	
 	/**
 	 * Http is the HttpSocket Object.
 	 * @access public
@@ -13,7 +18,9 @@ class PaymentGatewaySource extends DataSource {
 	/**
 	 * constructer.  Load the HttpSocket into the Http var.
 	 */
-	function __construct(){
+	function __construct($config){
+		parent::__construct($config);
+		App::import('HttpSocket');
 		$this->Http =& new HttpSocket();
 	}
   
@@ -30,8 +37,27 @@ class PaymentGatewaySource extends DataSource {
 	}
 	
 	/**
+	 * Iterates through the post-back data of the IPN and converts the Order Information to a Cake-friendly array
+	 *
+	 * @param string $data 
+	 * @return mixed $lineItems a formatted array of line items from the ipn post-back data
+	 * @author Dean
+	 */
+	public function uniform($data) {
+		App::import('Config', $this->config['driver'] . 'Config');
+		$result = array();
+		if (isset($this->config['test'])) {
+			$map = array_merge($PaypalConfig->testSettings['default'], $PaypalConfig->testSettings['testing']);
+		} else {
+			$map = $PaypalConfig->settings['default'];
+		}
+		debug($map);
+		return $result;
+	}
+	
+	/**
 	 * !!!Override this method!!!
-	 * Iterates through the post-back data of the IPN and converts the lineItems to a Cake-friendly array
+	 * Iterates through the post-back data of the IPN and converts the Line Items to a Cake-friendly array
 	 *
 	 * @param string $data 
 	 * @return mixed $lineItems a formatted array of line items from the ipn post-back data
