@@ -1,37 +1,15 @@
 <?php
-/* SVN FILE: $Id: tree.php 8120 2009-03-19 20:25:10Z gwoo $ */
 /**
- * Tree behavior class.
+ * Payment Gateway Behavior
  *
- * Enables a model object to act as a node-based tree.
+ * Attaches payment gateway datasources to a model (usually payments) for IPN and other data API features
  *
- * PHP versions 4 and 5
+ * Supported Model Callbacks:
+ *  - beforeIpnValidate($data, $gatewayConfig)
+ *  - afterIpnValidate($response)
  *
- * CakePHP :  Rapid Development Framework (http://www.cakephp.org)
- * Copyright 2006-2008, Cake Software Foundation, Inc.
- *
- * Licensed under The MIT License
- * Redistributions of files must retain the above copyright notice.
- *
- * @filesource
- * @copyright     Copyright 2006-2008, Cake Software Foundation, Inc.
- * @link          http://www.cakefoundation.org/projects/info/cakephp CakePHP Project
- * @package       cake
- * @subpackage    cake.cake.libs.model.behaviors
- * @since         CakePHP v 1.2.0.4487
- * @version       $Revision: 8120 $
- * @modifiedby    $LastChangedBy: gwoo $
- * @lastmodified  $Date: 2009-03-19 13:25:10 -0700 (Thu, 19 Mar 2009) $
- * @license       http://www.opensource.org/licenses/mit-license.php The MIT License
- */
-/**
- * Tree Behavior.
- *
- * Enables a model object to act as a node-based tree. Using Modified Preorder Tree Traversal
- * 
- * @see http://en.wikipedia.org/wiki/Tree_traversal
- * @package       cake
- * @subpackage    cake.cake.libs.model.behaviors
+ * @package default
+ * @author Dean
  */
 class PaymentGatewayBehavior extends ModelBehavior {
 	
@@ -40,12 +18,27 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 *
 	 * @var string
 	 */
-	var $settings = array(
-		'default' => null,
+	var $defaults = array(
+		'gateway' => null,
 	);
+	
+	/**
+	 * Settings for the behavior on every model
+	 *
+	 * @var string
+	 */
+	var $settings = array();
 
+	/**
+	 * Initialize behavior settings
+	 *
+	 * @param string $Model 
+	 * @param string $settings 
+	 * @return void
+	 * @author Dean
+	 */
 	function setup(&$Model, $settings) {
-		$this->settings = array_merge($this->settings, $settings);
+		$this->settings[$Model->name] = array_merge($this->defaults, $settings);
 	}
 	
 	/**
@@ -55,9 +48,34 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 * @param string $trigger name of trigger to call
 	 * @access protected
 	 */
-	function _trigger(&$Model, $trigger) {
+	function _callback(&$Model, $trigger, $parameters = array()) {
 		if (method_exists($Model, $trigger)) {
-			return call_user_func(array($Model, $trigger));
+			return call_user_func_array(array($Model, $trigger), $parameters);
+		}
+	}
+	
+	/**
+	 * Returns an instance of the currently set payment gateway
+	 *
+	 * @return $PaymentGatewayDatasource instance for calling methods
+	 * @author Dean
+	 */
+	public function _getGateway(&$Model) {
+		App::import('Model', 'ConnectionManager', false);
+		return ConnectionManager::getDataSource($this->settings[$Model->name]['gateway']); // TODO Make this a singleton?
+	}
+	
+	/**
+	 * Used to adjust the payment gateway before using the behavior
+	 *
+	 * @param string $Model 
+	 * @param string $gatewayConfig 
+	 * @return void
+	 * @author Dean
+	 */
+	public function setGateway(&$Model, $gatewayConfig = null) {
+		if ($gatewayConfig) {
+			$this->settings[$Model->name]['gateway'] = $gatewayConfig;
 		}
 	}
 	
@@ -67,13 +85,26 @@ class PaymentGatewayBehavior extends ModelBehavior {
      * @param array $data Most likely directly $_POST given by the controller.
      * @return boolean true | false depending on if data received is actually valid from paypal and not from some script monkey
      */
-	public function validIpn(&$Model, $data, $gatewayConfig = null) {
-      if(!empty($data) && ($gatewayConfig || $this->settings['default'])){
-		App::import('Model', 'ConnectionManager', false);
-		$gateway =& ConnectionManager::getDataSource($gatewayConfig);
-        return $gateway->validIpn($data);
-      }
-      return false;
+	public function isValid(&$Model, $data) {
+		$this->_callback($Model, 'beforeIpnValidate', array($data, $this->settings[$Model->name]['gateway']));
+		if(!empty($data)){
+			$gateway = $this->_getGateway($Model);
+			$result = $gateway->isValid($data);
+			$this->_callback($Model, 'afterIpnValidate', array($result));
+			return $result;
+		}
+		return false;
 	}
+	
+	/**
+      * builds the associative array for paypalitems only if it was a cart upload
+      *
+      * @param raw post data sent back from paypal
+      * @return array of cakePHP friendly association array.
+      */
+    public function extractLineItems(&$Model, $data) {
+		$gateway = $this->_getGateway($Model);
+		return $gateway->extractLineItems($data);
+    }
 }
 ?>

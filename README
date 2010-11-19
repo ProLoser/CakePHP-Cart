@@ -4,20 +4,44 @@ This is an attempt to become the defacto solution for shopping cart
 implementation in CakePHP. Not to say this in of itself will be the 
 best shopping cart around, but in fact give developers the resource
 to build their own custom shopping cart Application to their own
-specifications.
+specifications, allowing you to extrapolate from that point forwards.
 
-Hopefully future versions of the brother development app, 'Mocha'
-will use future releases of this plugin as a part of it's core. For
-now this is a 1-stop plugin that provides you all the resources you 
-need to build a cart and nothing more, allowing you to extrapolate 
-from that point forwards.
+ 
+Installation:
 
-"Title: ShoppingCart plugin for CakePHP
-Authors: Dean Sofer (ProLoser), Jesse Adams (techno-geek)
+1. Add the gateway configurations to your <code>database.php</code>. 
+	You can use multiple configurations for the same gateway. The datasource and driver must be correct.
+<pre>
+var $paypal = array(        
+	'datasource' => 'Cart.PaymentGateway',
+	'driver' => 'Cart.Paypal',
+	'login' => 'standard_username',        
+	'password' => 'password',    
+);
+var $paypalDonations = array(        
+	'datasource' => 'Cart.PaymentGateway',
+	'driver' => 'Cart.Paypal',
+	'login' => 'donations_username',        
+	'password' => 'password',    
+);
+var $google = array(        
+	'datasource' => 'Cart.PaymentGateway',
+	'driver' => 'Cart.GoogleCheckout',
+	'login' => 'username',        
+	'password' => 'password',    
+);
+</pre>
 
-CakePHP plugin that handles the management of order data in the session. Useful for shopping cart CakePHP applications. Will be used in the Mocha Shopping Cart project brought to you by DualTech Services, inc."
-
-Structure:
+2. Bind the PaymentGateway behavior (currently the model doesn't matter)
+<pre>
+Class Order extends AppModel {
+	var $actsAs = array(
+		'Cart.PaymentGateway' => array(
+			'default' => 'paypal',
+		),
+	);
+}
+</pre>
 
 Components:
  - Cart Session
@@ -38,49 +62,15 @@ Datasource:
 	- Works as a wrapper for individual payment gateway datasources
 	- Standardizes the methods and data used for individual datasources
 	- Stores configurations of different payment gateways
- 
-Installation:
 
-1. Add the gateway configurations to your <code>database.php</code>. 
-	You can use multiple configurations for the same gateway. The datasource and driver must be correct.
-<pre>
-var $paypal = array(        
-	'datasource' => 'Cart.PaymentGateway',
-	'driver' => 'Paypal',
-	'login' => 'standard_username',        
-	'password' => 'password',    
-);
-var $paypalDonations = array(        
-	'datasource' => 'Cart.PaymentGateway',
-	'driver' => 'Paypal',
-	'login' => 'donations_username',        
-	'password' => 'password',    
-);
-var $google = array(        
-	'datasource' => 'Cart.PaymentGateway',
-	'driver' => 'GoogleCheckout',
-	'login' => 'username',        
-	'password' => 'password',    
-);
-</pre>
-2. Bind the PaymentGateway behavior (currently the model doesn't matter)
-<pre>
-Class Order extends AppModel {
-	var $actsAs = array(
-		'Cart.PaymentGateway' => array(
-			'default' => 'paypal',
-		),
-	);
-}
-</pre
-
-Pending Features:
+Expected Features:
  - Shopping cart session component
  - Shopping cart session helper
  - Shipping / Tax handling (feature RFC)
- - Optional base table for standard products
- - Payment gateway behavior
- - Payment gateway api datasources (such as Google checkout and 
-	Paypal) that will work through the payment gateway behavior
- - Administration tools, such as mass product uploading/editing
-	- Integration with CSV component for custom importing/exporting
+ - Payment Gateway Behavior
+ - Optional Scaffolding: (for those who only need basic functionality)
+	- ??? Products MVC
+	- Orders MVC
+	- OrderLineItems MVC
+	- Payments (With IPN)
+	- ??? PaymentLineItems MVC

@@ -35,7 +35,7 @@
 
 App::import('Core', array('Xml', 'HttpSocket'));
 
-class PaymentGatewayPaypal extends PaymentGatewaySource 
+class Paypal extends PaymentGatewaySource 
 {  	
   	var $description = "Paypal direct payment API";
 	var $environment = '';		

@@ -18,7 +18,7 @@
  * @license       http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 App::import('Core', 'HttpSocket');
-class AuthorizeNetSource extends PaymentGatewaySource {
+class AuthorizeNet extends PaymentGatewaySource {
 	protected $_schema = array(
 		'tweets' => array(
 			'id' => array(

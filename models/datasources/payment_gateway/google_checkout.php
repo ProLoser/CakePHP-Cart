@@ -18,7 +18,7 @@
  * @license       http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 App::import('Core', 'HttpSocket');
-class GoogleCheckoutSource extends PyamentGatewaySource {
+class GoogleCheckout extends PyamentGatewaySource {
 	protected $_schema = array(
 		'tweets' => array(
 			'id' => array(
