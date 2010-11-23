@@ -9,8 +9,8 @@ specifications, allowing you to extrapolate from that point forwards.
  
 ## Installation:
 
-1. Add the gateway configurations to your <code>database.php</code>. 
-	You can use multiple configurations for the same gateway. The datasource and driver must be correct.
+#### Add the gateway configurations to your <code>database.php</code>. 
+You can use multiple configurations for the same gateway. The datasource and driver must be correct.
 <pre>
 var $paypal = array(        
 	'datasource' => 'Cart.PaymentGateway',
@@ -32,7 +32,7 @@ var $google = array(
 );
 </pre>
 
-2. Bind the PaymentGateway behavior to whatever model you choose
+####Bind the PaymentGateway behavior to whatever model you choose
 <pre>
 Class Payment extends AppModel {
 	var $hasMany = array('LineItem');
@@ -44,7 +44,7 @@ Class Payment extends AppModel {
 }
 </pre>
 
-3. Add an IPN action
+####Add an IPN action
 <pre>
 Class PaymentsController extends AppController {
 	function ipn($gatewayConfig = null) {
@@ -62,7 +62,8 @@ Class PaymentsController extends AppController {
 }
 </pre>
 
-The beauty is you have full control! You can send emails from the controller or relocate the save/formatting logic to the model callbacks:
+####The beauty is you have full control! 
+You can send emails from the controller or relocate the save/formatting logic to the model callbacks:
 <pre>
 Class PaymentModel extends AppModel {
 	beforeIpnValidate($data, $gatewayConfig = null){}
