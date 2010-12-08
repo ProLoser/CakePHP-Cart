@@ -5,12 +5,8 @@
   * 
   * All these options can be set on the fly as well within the helper
   */
-class PaypalConfig {
-
-	/**
-	 * Each settings key coresponds to the Paypal API.  Review www.paypal.com for more. 
-	 */
-	var $settings = array(
+$config['Cart']['Paypal'] = array(
+	'defaults' => array(
 		// Server URL for cart submission
 		'server' 		=> 'https://www.paypal.com/cgi-bin/webscr',
 		// cart field	=> cart-value-slot or value-default
@@ -40,14 +36,9 @@ class PaypalConfig {
 		'no_note',
 		'business'		=> 'username',
 		'return',
-	);
-  
-	/**
-	 * Test settings to test with using a sandbox paypal account.
-	 * Is merged with normal settings above upon use
-	 */
-	var $testSettings = array(
-		// Server URL for cart submission
-		'server' 		=> 'https://www.sandbox.paypal.com/cgi-bin/webscr',
-	);
-}
+	),
+	// Testing settings are automatically merged with defaults
+	'testing' => array(
+		'server'		=> 'https://www.sandbox.paypal.com/cgi-bin/webscr',
+	),
+);

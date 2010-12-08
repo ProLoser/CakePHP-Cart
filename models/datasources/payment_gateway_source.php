@@ -21,7 +21,31 @@ class PaymentGatewaySource extends DataSource {
 	function __construct($config){
 		parent::__construct($config);
 		App::import('HttpSocket');
-		$this->Http =& new HttpSocket();
+		$this->Http =& new HttpSocket(); // TODO Deprecated in PHP 5.3?
+		$this->settings = Configure::read('Cart.' . $this->config['driver']);
+	}
+	
+	/**
+	 * Iterates through the post-back data of the IPN and converts the Order Information to a Cake-friendly array
+	 *
+	 * @param string $data 
+	 * @return mixed $lineItems a formatted array of line items from the ipn post-back data
+	 * @author Dean
+	 */
+	public function uniform($data) {
+		$result = array();
+		if (isset($this->config['testing'])) {
+			$map = array_merge($this->settings['default'], $this->settings['testing']);
+		} else {
+			$map = $this->settings['default'];
+		}
+		foreach ($map as $slot => $slotAlias) {
+			if (isset($data[$slotAlias])) {
+				$data[$slot] = $data[$slotAlias];
+				unset($data[$slotAlias]);
+			}
+		}
+		return $result;
 	}
   
 	/**
@@ -34,25 +58,6 @@ class PaymentGatewaySource extends DataSource {
 	 */
 	public function isValid($data) {
 		return false;
-	}
-	
-	/**
-	 * Iterates through the post-back data of the IPN and converts the Order Information to a Cake-friendly array
-	 *
-	 * @param string $data 
-	 * @return mixed $lineItems a formatted array of line items from the ipn post-back data
-	 * @author Dean
-	 */
-	public function uniform($data) {
-		App::import('Config', $this->config['driver'] . 'Config');
-		$result = array();
-		if (isset($this->config['test'])) {
-			$map = array_merge($PaypalConfig->testSettings['default'], $PaypalConfig->testSettings['testing']);
-		} else {
-			$map = $PaypalConfig->settings['default'];
-		}
-		debug($map);
-		return $result;
 	}
 	
 	/**
