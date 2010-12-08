@@ -21,9 +21,7 @@ class Paypal extends PaymentGatewaySource {
 			$settings = $this->_settings('testing');
 		}
 		
-		$response = $this->Http->post($settings['server'], $data);
-		
-		return $this->checkResponse($response);
+		return parent::verify($data);
 	}
 	
 	/**

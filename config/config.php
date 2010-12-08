@@ -5,6 +5,25 @@
   * 
   * All these options can be set on the fly as well within the helper
   */
+
+///////// General Fields //////////
+$config['Cart']['fields'] = array(
+	'invoice',
+	'notify_url',
+	'amount',	
+	'address1',	
+	'address2',	
+	'city',		
+	'country',	
+	'email',	
+	'first_name',
+	'last_name',
+	'phone1',	
+	'phone2',	
+	'state',	
+	'zip',		
+);
+  
 ///////// Paypal //////////
 $config['Cart']['Paypal'] = array(
 	'defaults' => array(
@@ -62,7 +81,7 @@ $config['Cart']['EmartCart'] = array(
 $config['Cart']['AuthorizeNet'] = array(
 	'defaults' => array(
 		'server' 				=> 'https://secure.authorize.net/gateway/transact.dll',
-		'x_login'				=> 'login',
+		'x_login'				=> 'username',
 		'x_version'				=> '3.1',
 		'x_delim_char'			=> '|',
 		'x_delim_data'			=> 'TRUE',
