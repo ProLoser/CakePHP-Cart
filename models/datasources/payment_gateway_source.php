@@ -20,9 +20,28 @@ class PaymentGatewaySource extends DataSource {
 	 */
 	function __construct($config){
 		parent::__construct($config);
+		$this->settings = $this->_settings();
 		App::import('HttpSocket');
-		$this->Http =& new HttpSocket(); // TODO Deprecated in PHP 5.3?
-		$this->settings = Configure::read('Cart.' . $this->config['driver']);
+		$this->Http = new HttpSocket();
+	}
+	
+	/**
+	 * Returns the proper settings map from the config files
+	 *
+	 * @param string $mode null override 'defaults' or 'testing' detection by passing the specific settings name
+	 * @return array $settings
+	 * @author Dean
+	 */
+	public function _settings($mode = null) {
+		$settings = Configure::read('Cart.' . $this->config['driver']);
+		if (isset($this->config['testing'])) {
+			$settings = array_merge($settings['defaults'], $settings['testing']);
+		} elseif (!$mode && $mode != 'defaults') {
+			$settings = array_merge($settings['defaults'], $settings[$mode]);
+		} else {
+			$settings = $settings['defaults'];
+		}
+		return $settings;
 	}
 	
 	/**
@@ -34,29 +53,36 @@ class PaymentGatewaySource extends DataSource {
 	 */
 	public function uniform($data) {
 		$result = array();
-		if (isset($this->config['testing'])) {
-			$map = array_merge($this->settings['default'], $this->settings['testing']);
-		} else {
-			$map = $this->settings['default'];
-		}
-		foreach ($map as $slot => $slotAlias) {
-			if (isset($data[$slotAlias])) {
-				$data[$slot] = $data[$slotAlias];
-				unset($data[$slotAlias]);
+		foreach ($this->settings as $slot => $slotAlias) {
+			if (isset($data[$slot])) {
+				$data[$slotAlias] = $data[$slot];
+				unset($data[$slot]);
 			}
 		}
 		return $result;
 	}
   
 	/**
-	 * !!!Override this method!!!
+	 * !!!OVERRIDE ME!!!
 	 * Checks with the server to confirm if the notification is legitimate
 	 *
 	 * @param mixed $data
 	 * @return boolean
 	 * @author Dean
 	 */
-	public function isValid($data) {
+	public function verify($data) {
+		return false;
+	}
+	
+	/**
+	 * !!!OVERRIDE ME!!!
+	 * Scans the returned response from $this->verify() and gives an understandable response
+	 *
+	 * @param string $response 
+	 * @return boolean
+	 * @author Dean
+	 */
+	public function checkResponse($response) {
 		return false;
 	}
 	

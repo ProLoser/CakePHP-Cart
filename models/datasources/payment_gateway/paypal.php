@@ -1,21 +1,10 @@
 <?php
 /**
- * Paypal DataSource
+ * PayPal Datasource
  *
- * Used for reading and writing to Twitter, through models.
- *
- * PHP Version 5.x
- *
- * CakePHP(tm) : Rapid Development Framework (http://www.cakephp.org)
- * Copyright 2005-2009, Cake Software Foundation, Inc. (http://www.cakefoundation.org)
- *
- * Licensed under The MIT License
- * Redistributions of files must retain the above copyright notice.
- *
- * @filesource
- * @copyright     Copyright 2009, Cake Software Foundation, Inc. (http://www.cakefoundation.org)
- * @link          http://cakephp.org CakePHP(tm) Project
- * @license       http://www.opensource.org/licenses/mit-license.php The MIT License
+ * @link http://bakery.cakephp.org/articles/webtechnick/2009/08/11/paypal-ipn-instant-payment-notification-plugin-complete-with-paypalhelper
+ * @package Cart.Datasource
+ * @author Dean
  */
 class Paypal extends PaymentGatewaySource {
   
@@ -25,25 +14,32 @@ class Paypal extends PaymentGatewaySource {
 	 * @param array $data Most likely directly $_POST given by the controller.
 	 * @return boolean $valid depending on if data received is actually valid from paypal and not from some script monkey
 	 */
-	function isValid($data){		
+	function verify($data) {		
 		$data['cmd'] = '_notify-validate';
 		
 		if (isset($data['test_ipn'])) {
-			$server = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
-		} else {
-			$server = 'https://www.paypal.com/cgi-bin/webscr';
+			$settings = $this->_settings('testing');
 		}
 		
-		$response = $this->Http->post($server, $data);
+		$response = $this->Http->post($settings['server'], $data);
 		
+		return $this->checkResponse($response);
+	}
+	
+	/**
+	 * Scans the returned response from $this->verify() and gives an understandable response
+	 *
+	 * @param string $response 
+	 * @return boolean
+	 * @author Dean
+	 */
+	public function checkResponse($response) {
 		if ($response == "VERIFIED") {
 			return true;
 		}
-		
 		if (!$response) {
-			$this->log('HTTP Error in PaypalDatasource::isValid while posting back to PayPal', 'paypal');
+			$this->log('HTTP Error in PaypalDatasource::checkResponse while posting back to PayPal', 'paypal');
 		}
-		
 		return false;
 	}
 	
