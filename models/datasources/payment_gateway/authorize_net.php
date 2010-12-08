@@ -54,9 +54,7 @@ class AuthorizeNet extends PaymentGatewaySource {
 			"x_ship_to_country"		=> $shippinginfo["country"], 
 		);
 		
-		$response = $this->Http->post($settings['server'], $data);
-		
-		return $this->checkResponse($response);
+		return parent::verify($data);
 	 }
 		
   
@@ -67,17 +65,9 @@ class AuthorizeNet extends PaymentGatewaySource {
 	 * @return boolean $valid depending on if data received is actually valid from paypal and not from some script monkey
 	 */
 	function verify($data) {		
-		$data['cmd'] = '_notify-validate';
 		
-		if (isset($data['test_ipn'])) {
-			$server = $this->settings['testing']['server'];
-		} else {
-			$server = $this->settings['defaults']['server'];
-		}
 		
-		$response = $this->Http->post($server, $data);
-		
-		return $this->checkResponse($response);
+		return parent::verify($data);
 	}
 	
 	/**
