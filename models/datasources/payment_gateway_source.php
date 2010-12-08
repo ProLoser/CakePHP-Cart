@@ -28,6 +28,7 @@ class PaymentGatewaySource extends DataSource {
 		$this->_generalFields = Configure::read('Cart.fields');
 		App::import('HttpSocket');
 		$this->Http = new HttpSocket();
+		Configure::load('Cart.config');
 	}
 	
 	/**
@@ -38,8 +39,9 @@ class PaymentGatewaySource extends DataSource {
 	 * @author Dean
 	 */
 	public function _settings($mode = null) {
-		$settings = Configure::read('Cart.' . $this->config['driver']);
-		if (isset($this->config['testing'])) {
+		Configure::load($this->config['driver']);
+		$settings = Configure::read($this->config['driver']);
+		if (isset($this->config['testing']) && isset($settings['testing'])) {
 			$settings = array_merge($settings['defaults'], $settings['testing']);
 		} elseif (!$mode && $mode != 'defaults') {
 			$settings = array_merge($settings['defaults'], $settings[$mode]);

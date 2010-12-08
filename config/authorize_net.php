@@ -1,0 +1,43 @@
+<?php
+$config['Cart']['AuthorizeNet'] = array(
+	'defaults' => array(
+		'server' 				=> 'https://secure.authorize.net/gateway/transact.dll',
+		'x_login'				=> 'username',
+		'x_version'				=> '3.1',
+		'x_delim_char'			=> '|',
+		'x_delim_data'			=> 'TRUE',
+		'x_url'					=> 'FALSE',
+		'x_type'				=> 'AUTH_CAPTURE',
+		'x_method'				=> 'CC',
+		'x_tran_key'			=> 'password',
+		'x_relay_response'		=> 'FALSE',
+		'x_card_num'			=> '',
+		'x_card_code'			=> '',
+		'x_exp_date'			=> '',
+		'x_description'			=> '',
+		'x_amount'				=> 'amount',
+		'x_tax'					=> '',
+		'x_freight'				=> '',
+		'x_first_name'			=> '',
+		'x_last_name'			=> '',
+		'x_address'				=> 'address1',
+		'x_city'				=> 'city',
+		'x_state'				=> 'state',
+		'x_zip'					=> 'zip',
+		'x_country'				=> 'country',
+		'x_email'				=> 'email',
+		'x_phone'				=> 'phone1',
+		'x_ship_to_first_name'	=> '',
+		'x_ship_to_last_name'	=> '',
+		'x_ship_to_address'		=> '',
+		'x_ship_to_city'		=> '',
+		'x_ship_to_state'		=> '',
+		'x_ship_to_zip'			=> '',
+		'x_ship_to_country'		=> '',
+	),
+	'testing' => array(
+		'server' 		=> 'https://certification.authorize.net/gateway/transact.dll',
+		//'DEBUGGING'		=> 1, //$DEBUGGING		= 1; // Display additional information to track down problems
+		//'TESTING'		=> 1, //$TESTING		= 1; // Set the testing flag so that transactions are not live
+	),
+);
