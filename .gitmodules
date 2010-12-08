@@ -1,0 +1,3 @@
+[submodule "vendors/aktive_merchant"]
+	path = vendors/aktive_merchant
+	url = git://github.com/akDeveloper/Aktive-Merchant.git
