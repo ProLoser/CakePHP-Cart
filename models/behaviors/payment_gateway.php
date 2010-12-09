@@ -37,7 +37,7 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 * @return void
 	 * @author Dean
 	 */
-	function setup(&$Model, $settings) {
+	function setup(&$Model, $settings = array()) {
 		$this->settings[$Model->name] = array_merge($this->defaults, $settings);
 	}
 	
@@ -62,7 +62,7 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 */
 	public function _getGateway(&$Model) {
 		App::import('Model', 'ConnectionManager', false);
-		return ConnectionManager::getDataSource($this->settings[$Model->name]['gateway']); // TODO Make this a singleton?
+		return ConnectionManager::getDataSource($this->settings[$Model->name]['gateway']);
 	}
 	
 	/**
@@ -105,6 +105,12 @@ class PaymentGatewayBehavior extends ModelBehavior {
     public function extractLineItems(&$Model, $data) {
 		$gateway = $this->_getGateway($Model);
 		return $gateway->extractLineItems($data);
+    }
+    
+    public function test(&$Model, $gatewayConfig = null) {
+    	$this->setGateway($Model, $gatewayConfig);
+		$gateway = $this->_getGateway($Model);
+		return $gateway->test();
     }
 }
 ?>
