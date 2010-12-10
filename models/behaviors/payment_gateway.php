@@ -20,6 +20,11 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 */
 	var $defaults = array(
 		'gateway' => null,
+		// For PaypalExpress Only
+		'urls' => array(
+			'cancel_return_url' => 'http://example.com/cancel',
+			'error_return_url' => 'http://example.com/error',
+		)
 	);
 	
 	/**
@@ -55,17 +60,6 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	}
 	
 	/**
-	 * Returns an instance of the currently set payment gateway
-	 *
-	 * @return $PaymentGatewayDatasource instance for calling methods
-	 * @author Dean
-	 */
-	public function _getGateway(&$Model) {
-		App::import('Model', 'ConnectionManager', false);
-		return ConnectionManager::getDataSource($this->settings[$Model->name]['gateway']);
-	}
-	
-	/**
 	 * Used to adjust the payment gateway before using the behavior
 	 *
 	 * @param string $Model 
@@ -73,19 +67,55 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 * @return void
 	 * @author Dean
 	 */
-	public function setGateway(&$Model, $gatewayConfig = null) {
-		if ($gatewayConfig) {
-			$this->settings[$Model->name]['gateway'] = $gatewayConfig;
+	public function setGateway(&$Model, $gatewayConfig) {
+		$this->settings[$Model->name]['gateway'] = $gatewayConfig;
+	}
+	
+	/**
+	 * Used for setting the 'cancel_return_url' and/or 'error_return_url' for PaypalExpress
+	 *
+	 * @param object $Model 
+	 * @param array $urls array('cancel_return_url' => 'http://localhost/cancel', 'error_return_url' => 'http://localhost/error')
+	 * @return void
+	 * @author Dean
+	 */
+	public function setUrls(&$Model, $urls) {
+		$this->settings[$Model->name]['urls'] = $urls;
+	}
+	
+	/**
+	 * Returns an instance of the payment gateway
+	 *
+	 * @return $PaymentGatewayDatasource instance for calling methods
+	 * @author Dean
+	 */
+	public function _loadGateway(&$Model, $gatewayConfig = null) {
+		App::import('Model', 'ConnectionManager', false);
+		if (!$gatewayConfig) {
+			 $gatewayConfig = $this->settings[$Model->name]['gateway'];
+		}
+		return ConnectionManager::getDataSource($gatewayConfig);
+	}	
+	
+	public function purchase(&$Model, $amount, $data, $gatewayConfig = null) {
+		$gateway = $this->_loadGateway($Model, $gatewayConfig);
+		$gateway->urls = $this->settings[$Model->name]['urls'];
+		$success = $gateway->purchase($amount, $data);
+		if ($success) {
+			return true;
+		} else {
+			$Model->error = $gateway->error;
+			return false;
 		}
 	}
 	
 	/**
-     * Verifies POST data given by the instant payment notification
-     *
-     * @param array $data Most likely directly $_POST given by the controller.
-     * @return boolean true | false depending on if data received is actually valid from paypal and not from some script monkey
-     */
-	public function isValid(&$Model, $data) {
+	 * Verifies POST data given by the instant payment notification
+	 *
+	 * @param array $data Most likely directly $_POST given by the controller.
+	 * @return boolean true | false depending on if data received is actually valid from paypal and not from some script monkey
+	 */
+	public function paypalIpn(&$Model, $data) {
 		$this->_callback($Model, 'beforeIpnValidate', array($data, $this->settings[$Model->name]['gateway']));
 		if(!empty($data)){
 			$gateway = $this->_getGateway($Model);
@@ -97,20 +127,14 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	}
 	
 	/**
-      * builds the associative array for paypalitems only if it was a cart upload
-      *
-      * @param raw post data sent back from paypal
-      * @return array of cakePHP friendly association array.
-      */
-    public function extractLineItems(&$Model, $data) {
-		$gateway = $this->_getGateway($Model);
+	 * builds the associative array for paypalitems only if it was a cart upload
+	 *
+	 * @param raw post data sent back from paypal
+	 * @return array of cakePHP friendly association array.
+	 */
+	public function extractLineItems(&$Model, $data) {
+		$gateway = $this->_loadGateway($Model);
 		return $gateway->extractLineItems($data);
-    }
-    
-    public function test(&$Model, $gatewayConfig = null) {
-    	$this->setGateway($Model, $gatewayConfig);
-		$gateway = $this->_getGateway($Model);
-		return $gateway->test();
-    }
+	}
 }
 ?>
