@@ -18,7 +18,7 @@ var $paypal = array(
 	'login' => 'standard',        
 	'password' => 'password',    
 );
-var $paypalDonations = array(        
+var $paypaldonations = array(        
 	'datasource' => 'Cart.PaymentGateway',
 	'driver' => 'Cart.Paypal',
 	'login' => 'donations',        
@@ -38,7 +38,10 @@ Class Payment extends AppModel {
 	var $hasMany = array('LineItem');
 	var $actsAs = array(
 		'Cart.PaymentGateway' => array(
-			'default' => 'paypal', // Useful if you only need 1 gateway
+			'default' => 'paypaldonations', // [Optional] Useful if you only need 1 gateway
+			'urls' => array(
+				'cancel_return_url' => 'http://example.com/payments/cancel',
+			),
 		),
 	);
 }
@@ -47,16 +50,36 @@ Class Payment extends AppModel {
 ####Add an IPN action
 <pre>
 Class PaymentsController extends AppController {
-	function ipn($gatewayConfig = null) {
-		$this->Payment->setGateway($gatewayConfig); // If you want to override the default or didn't specify. 
-		// This would refer to the db configurations (paypal, paypalDonations, google, etc)
+	function process($gatewayConfig = null) {
 		
-		if ($this->Payment->isValid($_POST)) {
-			// go crazy
-			$data['Payment'] = $this->Payment->uniform($_POST); // standardizes the fieldnames
-			$data['LineItem'] = $this->Payment->extractLineItems($_POST); // If you submit orders with multiple products
-			$this->Payment->saveAll($data);
-			// send email... etc.
+		// This would refer to the db configurations (paypal, paypalDonations, google, etc)
+		$data = array(
+			'description' => 'Test Transaction',
+			'address' => array(
+				'address1' => '1234 Street',
+				'zip' => '98004',
+				'state' => 'WA',
+				'city' => 'Yorba Linda',
+				'country' => 'United States',
+			),
+			'credit_card' => array(
+				'first_name' => 'John',
+				'last_name' => 'Doe',
+				'number' => '5105105105105100',
+				'month' => '12',
+				'year' => '2012',
+				'verification_value' => '123',
+				'type' => 'master',
+			),
+		);
+		$amount = 10;
+		if (this->purchase($amount, $data, $gatewayConfig)) {
+			$this->Session->setFlash('Transaction completed successfully!');
+			// TODO Send Email
+			$this->redirect(array('action' => 'complete'));
+		} else {
+			$this->Session->setFlash('Error: ' . $this->Payment->error . '. Please try again.');
+			$this->redirect(array('action' => 'index'));
 		}
 	}
 }
