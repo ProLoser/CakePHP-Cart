@@ -89,14 +89,22 @@ class AktiveMerchantSource extends DataSource {
 	 * @author Dean
 	 */
 	public function creditCard($data) {
-		if (isset($data['credit_card'])) {
-			$data = $data['credit_card'];
-		}
-		$creditCard = new Merchant_Billing_CreditCard($data);
-		if ($creditCard->is_valid()) {
-			return $creditCard;
+		if ($data instanceof Merchant_Billing_CreditCard) {
+			if ($data->is_valid()) {
+				return $data;
+			} else {
+				return false;
+			}
 		} else {
-			return false;
+			if (isset($data['credit_card'])) {
+				$data = $data['credit_card'];
+			}
+			$creditCard = new Merchant_Billing_CreditCard($data);
+			if ($creditCard->is_valid()) {
+				return $creditCard;
+			} else {
+				return false;
+			}
 		}
 	}
 	
