@@ -118,8 +118,9 @@ class AktiveMerchantSource extends DataSource {
 					$response = $this->_completePurchase();
 				}
 			} else {
-				if (!$creditCard = $this->creditCard($data)) {
-					$this->error = $creditCard->errors();
+				$creditCard = $this->creditCard($data);
+				if (!$creditCard) {
+					$this->error = 'Invalid Credit Card';
 					return false;
 				}
 				
