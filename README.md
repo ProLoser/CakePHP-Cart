@@ -9,24 +9,35 @@ specifications, allowing you to extrapolate from that point forwards.
  
 ## Installation:
 
+#### Add the plugin and vendor
+<code>git submodule add git://github.com/ProLoser/CakePHP-Cart.git plugins/cart</code> or download to <code>plugins/cart</code>
+
+<code>cd plugins/cart</code>
+
+<code>git submodule update --init</code> or download https://github.com/akDeveloper/Aktive-Merchant to <code>plugins/cart/vendors/aktive_merchant</code>
+
 #### Add the gateway configurations to your <code>database.php</code>. 
 You can use multiple configurations for the same gateway. The datasource and driver must be correct.
 <pre>
-var $paypal = array(        
-	'datasource' => 'Cart.PaymentGateway',
-	'driver' => 'Cart.Paypal',
+// 'paypal' is the name of this gatewayConfig
+var $paypal = array(     
+	'gateway' => 'Paypal',   
+	'datasource' => 'Cart.AktiveMerchant',
 	'login' => 'standard',        
-	'password' => 'password',    
+	'password' => 'password',
+	'signature' => 'api-signature',
 );
-var $paypaldonations = array(        
-	'datasource' => 'Cart.PaymentGateway',
-	'driver' => 'Cart.Paypal',
-	'login' => 'donations',        
-	'password' => 'password',    
+// 'paypaldonations' is the name of this gatewayConfig
+var $paypaldonations = array( 
+	'gateway' => 'PaypalExpress',    
+	'datasource' => 'Cart.AktiveMerchant',
+	'username' => 'donations',    
+	'currency' => 'USD',
 );
-var $google = array(        
-	'datasource' => 'Cart.PaymentGateway',
-	'driver' => 'Cart.GoogleCheckout',
+// 'authorize' is the name of this gatewayConfig
+var $authorize = array(        
+	'gateway' => 'AuthorizeNet',
+	'datasource' => 'Cart.AktiveMerchant',
 	'login' => 'username',        
 	'password' => 'password',    
 );
@@ -38,8 +49,11 @@ Class Payment extends AppModel {
 	var $hasMany = array('LineItem');
 	var $actsAs = array(
 		'Cart.PaymentGateway' => array(
-			'default' => 'paypaldonations', // [Optional] Useful if you only need 1 gateway
-			'urls' => array(
+			// gatewayConfig [Optional] Useful if you only use 1 gateway
+			'default' => 'paypaldonations', 
+			
+			// urls are only used for Paypal Express (currently) and you may choose to use setUrls() instead
+			'urls' => array( 
 				'cancel_return_url' => 'http://example.com/payments/cancel',
 			),
 		),
@@ -47,12 +61,13 @@ Class Payment extends AppModel {
 }
 </pre>
 
-####Add an IPN action
+####Add an processing action
 <pre>
 Class PaymentsController extends AppController {
+	// $gatewayConfig is useful for multiple payment gateways (paypal, paypalDonations, authorize, etc) but you can just use default instead too
 	function process($gatewayConfig = null) {
 		
-		// This would refer to the db configurations (paypal, paypalDonations, google, etc)
+		// Populate your gateway data however you want
 		$data = array(
 			'description' => 'Test Transaction',
 			'address' => array(
@@ -73,29 +88,29 @@ Class PaymentsController extends AppController {
 			),
 		);
 		$amount = 10;
-		if (this->purchase($amount, $data, $gatewayConfig)) {
+		if (this->Payment->purchase($amount, $data, $gatewayConfig)) { // Remember: $gatewayConfig is optional if you want the default instead
 			$this->Session->setFlash('Transaction completed successfully!');
 			// TODO Send Email
 			$this->redirect(array('action' => 'complete'));
 		} else {
 			$this->Session->setFlash('Error: ' . $this->Payment->error . '. Please try again.');
-			$this->redirect(array('action' => 'index'));
 		}
 	}
 }
 </pre>
 
-####The beauty is you have full control! 
+####Callbacks will be coming soon too! Go crazy from the model layer!
 You can send emails from the controller or relocate the save/formatting logic to the model callbacks:
 <pre>
 Class PaymentModel extends AppModel {
-	beforeIpnValidate($data, $gatewayConfig = null){}
-	afterIpnValidate($response){
-		if ($response) {
-			// format data and save it
-		} else {
-			// log it
-		}
+	var $actsAs = array(
+		'Cart.PaymentGateway',
+		'Cart.CreditCard',
+	);
+	function process($amount, $data, $gatewayConfig) {
+		// You can find extra validation rules and data-prep functions in the CreditCard Behavior
+		$data = $this->formatData($data['Payment']); // CreditCardBehavior::formatData() moves address and cc fields into sub-arrays for you
+		return $this->purchase($amount, $data, $gatewayConfig);
 	}
 }
 </pre>
@@ -115,12 +130,18 @@ Class PaymentModel extends AppModel {
  - PaymentGateway
 	- Binds different gateway datasources to the model for IPN and order processing
 	- Relies on the PaymentGatewayDatasource
+ - CreditCard
+	- Validation Rules
+	- Data formatting functions
 	
 ### Datasource:
  - PaymentGateway
 	- Works as a wrapper for individual payment gateway datasources
 	- Standardizes the methods and data used for individual datasources
 	- Stores configurations of different payment gateways
+ - AktiveMerchant
+	- An alternative to the original PaymentGateway behavior (master)
+	- Relies on the aktiveMerchant vendor
 
 ## Expected Features:
  - Shopping cart session component
