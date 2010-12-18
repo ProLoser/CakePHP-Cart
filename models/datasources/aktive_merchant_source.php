@@ -1,4 +1,10 @@
 <?php
+/**
+ * Wrapper datasource for the Aktive Merchant vendor library found here: https://github.com/akDeveloper/Aktive-Merchant
+ *
+ * @package Cart
+ * @author Dean
+ */
 class AktiveMerchantSource extends DataSource {
 	/**
 	 * Description string for this Data Source.
@@ -86,7 +92,6 @@ class AktiveMerchantSource extends DataSource {
 	 *
 	 * @param string $data 
 	 * @return $creditCard Merchant_Billing_CreditCard or false if the card is invalid
-	 * @author Dean
 	 */
 	public function creditCard($data) {
 		if ($data instanceof Merchant_Billing_CreditCard) {
@@ -108,6 +113,13 @@ class AktiveMerchantSource extends DataSource {
 		}
 	}
 	
+	/**
+	 * Submits a purchase to the active payment gateway
+	 *
+	 * @param decimal $amount 
+	 * @param array $data requires 'description' and 'address' keys to be properly filled
+	 * @return mixed $success Returns the REF ID# if successful, else false
+	 */
 	public function purchase($amount, $data) {
 		try {
 			// Paypal Express works in 2 separate parts
@@ -134,7 +146,7 @@ class AktiveMerchantSource extends DataSource {
 			}
 			
 			if ($response->success()) {
-				return true;
+				return $options['order_id'];
 			} else {
 				$this->error = $response->message();
 					$this->log('Cart.AktiveMerchantSource: ' . $response->message());
