@@ -90,7 +90,7 @@ Class PaymentsController extends AppController {
 		$amount = 10;
 		if (this->Payment->purchase($amount, $data, $gatewayConfig)) { // Remember: $gatewayConfig is optional if you want the default instead
 			$this->Session->setFlash('Transaction completed successfully!');
-			// TODO Send Email
+			// Send Email
 			$this->redirect(array('action' => 'complete'));
 		} else {
 			$this->Session->setFlash('Error: ' . $this->Payment->error . '. Please try again.');
