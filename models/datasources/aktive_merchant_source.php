@@ -68,6 +68,7 @@ class AktiveMerchantSource extends DataSource {
 		if (isset($this->config['testing']) && $this->config['testing']) {
 			Merchant_Billing_Base::mode('test');
 		}
+		$initOptions = array();
 		foreach ($options as $option) {
 			if (isset($this->config[$option])) {
 				$initOptions[$option] = $this->config[$option];
