@@ -147,7 +147,12 @@ class AktiveMerchantSource extends DataSource {
 			}
 			
 			if ($response->success()) {
-				return $options['order_id'];
+				if (isset($options['order_id'])) {
+					return $options['order_id'];
+				} else {
+					// TODO Should always return order_id, paypal express currently doesn't save it due to the 2 step process
+					return true;
+				}
 			} else {
 				$this->error = $response->message();
 					$this->log('Cart.AktiveMerchantSource: ' . $response->message());
