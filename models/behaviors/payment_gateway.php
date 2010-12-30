@@ -102,7 +102,7 @@ class PaymentGatewayBehavior extends ModelBehavior {
 		$gateway->urls = $this->settings[$Model->name]['urls'];
 		$success = $gateway->purchase($amount, $data);
 		if ($success) {
-			return true;
+			return $success;
 		} else {
 			$Model->error = $gateway->error;
 			return false;
