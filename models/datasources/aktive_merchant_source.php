@@ -173,8 +173,6 @@ class AktiveMerchantSource extends DataSource {
 	 * @author Dean
 	 */
 	protected function _startPurchase($amount, $data) {
-		$this->creditCard($data);
-		
 		$pageURL = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
 		if ($_SERVER["SERVER_PORT"] != "80") {
 			$pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
@@ -185,7 +183,6 @@ class AktiveMerchantSource extends DataSource {
 		$options = array(
 			'order_id' => 'REF' . $this->gateway->generate_unique_id(),
 			'description' => $data['description'],
-			'address' => $data['address'],
 			'return_url' => $pageURL,
 		);
 		
