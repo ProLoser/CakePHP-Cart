@@ -172,9 +172,7 @@ class AktiveMerchantSource extends DataSource {
 		} else {
 			$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
 		}
-		
 		$options = array(
-			'order_id' => 'REF' . $this->gateway->generate_unique_id(),
 			'description' => $data['description'],
 			'return_url' => $pageURL,
 		);
