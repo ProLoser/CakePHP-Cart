@@ -97,16 +97,16 @@ class PaymentGatewayBehavior extends ModelBehavior {
 		return ConnectionManager::getDataSource($gatewayConfig);
 	}	
 	
-	public function purchase(&$Model, $amount, $data, $gatewayConfig = null) {
+	public function purchase(&$Model, $amount, $data) {
+		$this->_callback($Model, 'beforePurchase', array($amount, $data));
 		$gateway = $this->_loadGateway($Model, $gatewayConfig);
 		$gateway->urls = $this->settings[$Model->name]['urls'];
 		$success = $gateway->purchase($amount, $data);
-		if ($success) {
-			return $success;
-		} else {
+		if (!$success) {
 			$Model->error = $gateway->error;
-			return false;
 		}
+		$this->_callback($Model, 'afterPurchase', array($success));
+		return $success;
 	}
 	
 	/**
@@ -115,12 +115,12 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 * @param array $data Most likely directly $_POST given by the controller.
 	 * @return boolean true | false depending on if data received is actually valid from paypal and not from some script monkey
 	 */
-	public function paypalIpn(&$Model, $data) {
-		$this->_callback($Model, 'beforeIpnValidate', array($data, $this->settings[$Model->name]['gateway']));
+	public function ipn(&$Model, $data) {
+		$this->_callback($Model, 'beforeIpn', array($data, $this->settings[$Model->name]['gateway']));
 		if(!empty($data)){
-			$gateway = $this->_getGateway($Model);
-			$result = $gateway->isValid($data);
-			$this->_callback($Model, 'afterIpnValidate', array($result));
+			$gateway = $this->_loadGateway($Model);
+			$result = $gateway->ipn($data);
+			$this->_callback($Model, 'afterIpn', array($result));
 			return $result;
 		}
 		return false;

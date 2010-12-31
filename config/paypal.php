@@ -31,6 +31,9 @@ $config['Cart']['Paypal'] = array(
 		'no_note',
 		'business'		=> 'username',
 		'return',
+		'responses' => array(
+			'verified' => 'VERIFIED',
+		),
 	),
 	// Testing settings are automatically merged with defaults
 	'testing' => array(

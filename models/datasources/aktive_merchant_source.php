@@ -148,12 +148,12 @@ class AktiveMerchantSource extends DataSource {
 				return $response->authorization();
 			} else {
 				$this->error = $response->message();
-					$this->log('Cart.AktiveMerchantSource: ' . $response->message());
+					$this->log('Cart.AktiveMerchantSource: ' . $response->message(), 'cart');
 				return false;
 			}
 		} catch (Exception $e) {
 			$this->error = $e->getMessage();
-			$this->log('Cart.AktiveMerchantSource: ' . $e->getMessage());
+			$this->log('Cart.AktiveMerchantSource: ' . $e->getMessage(), 'cart');
 			return false;
 		}
 	}

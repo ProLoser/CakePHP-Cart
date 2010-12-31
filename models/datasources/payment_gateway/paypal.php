@@ -7,7 +7,7 @@
  * @author Dean
  */
 class Paypal extends PaymentGatewaySource {
-  
+	
 	/**
 	 * Verifies POST data given by the paypal instant payment notification
 	 *
@@ -18,27 +18,10 @@ class Paypal extends PaymentGatewaySource {
 		$data['cmd'] = '_notify-validate';
 		
 		if (isset($data['test_ipn'])) {
-			$settings = $this->_settings('testing');
+			$this->config = $this->_config('testing');
 		}
 		
 		return parent::verify($data);
-	}
-	
-	/**
-	 * Scans the returned response from $this->verify() and gives an understandable response
-	 *
-	 * @param string $response 
-	 * @return boolean
-	 * @author Dean
-	 */
-	public function checkResponse($response) {
-		if ($response == "VERIFIED") {
-			return true;
-		}
-		if (!$response) {
-			$this->log('HTTP Error in PaypalDatasource::checkResponse while posting back to PayPal', 'paypal');
-		}
-		return false;
 	}
 	
 	/**
@@ -50,15 +33,25 @@ class Paypal extends PaymentGatewaySource {
 	 */
 	public function extractLineItems($data) {
 		$results = array();
-		if (isset($post['num_cart_items']) && $post['num_cart_items'] > 1) { // TODO is 1 cart item return a different array?
-			for ($i = 1; $i <= $post['num_cart_items']; $i++) {
-				$results[$i]['item_name']	= $post["item_name$i"];
-				$results[$i]['item_number']	= $post["item_number$i"];
-				$results[$i]['quantity']	= $post["quantity$i"];
-				$results[$i]['mc_shipping']	= $post["mc_shipping$i"];
-				$results[$i]['mc_handling']	= $post["mc_handling$i"];
-				$results[$i]['mc_gross'] 	= $post["mc_gross_$i"];
-				$results[$i]['tax'] 		= $post["tax$i"];
+		// TODO Does 1 cart item return a different array?
+		if (isset($data['item_name'])) {
+			$results[0]['item_name']	= $data['item_name'];
+			$results[0]['item_number']	= $data['item_number'];
+			$results[0]['quantity']		= $data['quantity'];
+			$results[0]['mc_shipping']	= $data['mc_shipping'];
+			$results[0]['mc_handling']	= $data['mc_handling'];
+			$results[0]['mc_gross'] 	= $data['mc_gross'];
+			$results[0]['tax'] 			= $data['tax'];
+		}
+		if (isset($data['num_cart_items']) && $data['num_cart_items'] > 1) {
+			for ($i = 1; $i <= $data['num_cart_items']; $i++) {
+				$results[$i]['item_name']	= $data["item_name$i"];
+				$results[$i]['item_number']	= $data["item_number$i"];
+				$results[$i]['quantity']	= $data["quantity$i"];
+				$results[$i]['mc_shipping']	= $data["mc_shipping$i"];
+				$results[$i]['mc_handling']	= $data["mc_handling$i"];
+				$results[$i]['mc_gross'] 	= $data["mc_gross$i"];
+				$results[$i]['tax'] 		= $data["tax$i"];
 			}
 		}
 		return $results;

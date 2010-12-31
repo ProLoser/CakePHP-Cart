@@ -17,14 +17,19 @@ class PaymentGatewaySource extends DataSource {
 	 */
 	var $Http = null;
 	
-	var $settings = array();
+	/**
+	 * Holds the database settings for the datasource
+	 *
+	 * @var array
+	 */
+	var $config = array();
   
 	/**
 	 * constructer.  Load the HttpSocket into the Http var.
 	 */
 	function __construct($config){
 		parent::__construct($config);
-		$this->settings = $this->_settings();
+		$this->config = $this->_config();
 		$this->_generalFields = Configure::read('Cart.fields');
 		App::import('HttpSocket');
 		$this->Http = new HttpSocket();
@@ -38,15 +43,15 @@ class PaymentGatewaySource extends DataSource {
 	 * @return array $settings
 	 * @author Dean
 	 */
-	public function _settings($mode = null) {
+	public function _config($mode = null) {
 		Configure::load($this->config['driver']);
-		$settings = Configure::read($this->config['driver']);
-		if (isset($this->config['testing']) && isset($settings['testing'])) {
-			$settings = array_merge($settings['defaults'], $settings['testing']);
+		$config = Configure::read($this->config['driver']);
+		if (isset($this->config['testing']) && isset($config['testing'])) {
+			$config = array_merge($config['defaults'], $config['testing']);
 		} elseif (!$mode && $mode != 'defaults') {
-			$settings = array_merge($settings['defaults'], $settings[$mode]);
+			$config = array_merge($config['defaults'], $config[$mode]);
 		} else {
-			$settings = $settings['defaults'];
+			$config = $config['defaults'];
 		}
 		return $settings;
 	}
@@ -94,23 +99,30 @@ class PaymentGatewaySource extends DataSource {
 	}
   
 	/**
-	 * !!!OVERRIDE ME!!!
 	 * Checks with the server to confirm if the notification is legitimate
 	 *
 	 * @param mixed $data
 	 * @return boolean
 	 * @author Dean
 	 */
-	public function verify($data) {
-		$data = $this->uniform($data);
-		
-		$response = $this->Http->post($settings['server'], $data);
+	public function ipn($data) {
+		$response = $this->verify($data);
 		
 		return $this->checkResponse($response);
 	}
 	
 	/**
-	 * !!!OVERRIDE ME!!!
+	 * Submits the data for verification
+	 *
+	 * @param string $data 
+	 * @return void
+	 * @author Dean
+	 */
+	public function verify($data) {
+		return $this->Http->post($this->config['server'], $data);
+	}
+	
+	/**
 	 * Scans the returned response from $this->verify() and gives an understandable response
 	 *
 	 * @param string $response 
@@ -118,18 +130,12 @@ class PaymentGatewaySource extends DataSource {
 	 * @author Dean
 	 */
 	public function checkResponse($response) {
-		return false;
-	}
-	
-	/**
-	 * !!!Override this method!!!
-	 * Iterates through the post-back data of the IPN and converts the Line Items to a Cake-friendly array
-	 *
-	 * @param string $data 
-	 * @return mixed $lineItems a formatted array of line items from the ipn post-back data
-	 * @author Dean
-	 */
-	public function extractLineItems($data) {
+		if ($response == $this->config['responses']['verified']) {
+			return true;
+		}
+		if (!$response) {
+			$this->log('HTTP Error in PaymentGatewayDatasource::checkResponse while posting back to gateway', 'cart');
+		}
 		return false;
 	}
 }

@@ -42,7 +42,6 @@ class CartPayment extends AppModel {
 			$payment['CartPaymentLineItem'] = $this->extractLineItems($data, $gatewayConfig);
 			$this->Payment->saveAll($payment);
 		}
-		$this->log(debug($data));
 	}
 }
 ?>
