@@ -17,14 +17,14 @@ class Paypal extends PaymentGatewaySource {
 	function ipn($data) {		
 		$data['cmd'] = '_notify-validate';
 		
-		if (isset($data['test_ipn']) && empty($this->config['testing'])) {
-			return false;
+		if (
+			((isset($data['test_ipn']) && empty($this->config['testing'])) 
+			|| (!isset($data['test_ipn']) && !empty($this->config['testing'])))
+			&& parent::ipn($data) && $this->_checkEmail($data)
+		) {
+			return true;
 		} else {
-			if (parent::ipn($data) && $this->_checkEmail($data)) {
-				return true;
-			} else {
-				return false;
-			}
+			return false;
 		}
 	}
 	

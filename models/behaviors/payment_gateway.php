@@ -99,7 +99,7 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	
 	public function purchase(&$Model, $amount, $data) {
 		$this->_callback($Model, 'beforePurchase', array($amount, $data));
-		$gateway = $this->_loadGateway($Model, $gatewayConfig);
+		$gateway = $this->_loadGateway($Model);
 		$gateway->urls = $this->settings[$Model->name]['urls'];
 		$success = $gateway->purchase($amount, $data);
 		if (!$success) {
