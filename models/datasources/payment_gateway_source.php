@@ -8,8 +8,6 @@ class PaymentGatewaySource extends DataSource {
 	 */
 	var $description = 'Payment Gateway Datasource';
 	
-	var $_generalFields = array();
-	
 	/**
 	 * Http is the HttpSocket Object.
 	 * @access public
@@ -23,14 +21,20 @@ class PaymentGatewaySource extends DataSource {
 	 * @var array
 	 */
 	var $config = array();
+	
+	/**
+	 * Holds the field map for the gateway
+	 *
+	 * @var string
+	 */
+	var $map = array();
   
 	/**
-	 * constructer.  Load the HttpSocket into the Http var.
+	 * Constructer.  Load the HttpSocket into the Http var.
 	 */
 	function __construct($config){
 		parent::__construct($config);
-		$this->config = $this->_config();
-		$this->_generalFields = Configure::read('Cart.fields');
+		$this->map = $this->_map();
 		App::import('HttpSocket');
 		$this->Http = new HttpSocket();
 		Configure::load('Cart.config');
@@ -43,21 +47,22 @@ class PaymentGatewaySource extends DataSource {
 	 * @return array $settings
 	 * @author Dean
 	 */
-	public function _config($mode = null) {
+	protected function _map($mode = null) {
 		Configure::load($this->config['driver']);
-		$config = Configure::read($this->config['driver']);
-		if (isset($this->config['testing']) && isset($config['testing'])) {
-			$config = array_merge($config['defaults'], $config['testing']);
-		} elseif (!$mode && $mode != 'defaults') {
-			$config = array_merge($config['defaults'], $config[$mode]);
+		$map = Configure::read($this->map['driver']);
+		if (isset($this->config['testing']) && isset($map['testing'])) {
+			$map = array_merge($map['defaults'], $map['testing']);
+		} elseif ($mode && $mode != 'defaults') {
+			$map = array_merge($map['defaults'], $map[$mode]);
 		} else {
-			$config = $config['defaults'];
+			$map = $map['defaults'];
 		}
-		return $settings;
+		return $map;
 	}
 	
 	/**
 	 * Iterates through the post-back data of the IPN and converts the Order Information to a Cake-friendly array
+	 * TODO: currently broken due to an inconsistent config file 
 	 *
 	 * @param string $data
 	 * @param boolean $reverse false Set to true to go from GeneralFormat -> GatewayFormat
@@ -71,31 +76,16 @@ class PaymentGatewaySource extends DataSource {
 				// Uses the default value if the general field isn't found
 				if (isset($data[$generalField])) {
 					$result[$gatewayField] = $data[$generalField];
-				} elseif (!in_array($generalField, $this->_generalFields, true)) {
+				} elseif (!in_array($generalField, $this->map, true)) {
 					$result[$gatewayField] = $generalField;
 				}
 				unset($data[$generalField]);
-			} elseif (in_array($generalField, $this->_generalFields, true)) {
+			} elseif (in_array($generalField, $this->map, true)) {
 				$result[$generalField] = $data[$gatewayField];
 				unset($data[$gatewayField]);
 			}
 		}
 		return $result;
-	}
-	
-	/**
-	 * Submits a payment to the payment gateway
-	 *
-	 * @param string $data 
-	 * @return void
-	 * @author Dean
-	 */
-	public function send($data) {
-		$data = $this->uniform($data, true);
-		
-		$response = $this->Http->post($settings['server'], $data);
-		
-		return $this->checkResponse($response);
 	}
   
 	/**
@@ -106,7 +96,7 @@ class PaymentGatewaySource extends DataSource {
 	 * @author Dean
 	 */
 	public function ipn($data) {
-		$response = $this->verify($data);
+		$response = $this->submit($data);
 		
 		return $this->checkResponse($response);
 	}
@@ -118,8 +108,8 @@ class PaymentGatewaySource extends DataSource {
 	 * @return void
 	 * @author Dean
 	 */
-	public function verify($data) {
-		return $this->Http->post($this->config['server'], $data);
+	public function submit($data) {
+		return $this->Http->post($this->map['server'], $data);
 	}
 	
 	/**
@@ -130,7 +120,7 @@ class PaymentGatewaySource extends DataSource {
 	 * @author Dean
 	 */
 	public function checkResponse($response) {
-		if ($response == $this->config['responses']['verified']) {
+		if ($response == $this->map['responses']['verified']) {
 			return true;
 		}
 		if (!$response) {
