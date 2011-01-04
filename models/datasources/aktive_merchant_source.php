@@ -62,20 +62,11 @@ class AktiveMerchantSource extends DataSource {
 	 * @author Dean
 	 */
 	function _load($options = array()) {
-		if (!$options) {
-			$options = array('login', 'password', 'signature');
-		}
 		if (isset($this->config['testing']) && $this->config['testing']) {
 			Merchant_Billing_Base::mode('test');
 		}
-		$initOptions = array();
-		foreach ($options as $option) {
-			if (isset($this->config[$option])) {
-				$initOptions[$option] = $this->config[$option];
-			}
-		}
 		$gatewayClass = 'Merchant_Billing_' . $this->config['gateway'];
-		$this->gateway = new $gatewayClass($initOptions);
+		$this->gateway = new $gatewayClass($this->config);
 	}
 	
 	/**
@@ -176,7 +167,6 @@ class AktiveMerchantSource extends DataSource {
 			'description' => $data['description'],
 			'return_url' => $pageURL,
 		);
-		
 		$response = $this->gateway->setup_purchase($amount, array_merge($this->urls, $options));
 		die(header('Location: ' . $this->gateway->url_for_token($response->token())));
 	}
