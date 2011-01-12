@@ -41,7 +41,7 @@ class CartPaymentsController extends AppController {
 			$this->Session->setFlash(__('Invalid Payment', true));
 			$this->redirect(array('action' => 'index'));
 		}
-		$this->set('payment', $this->Payment->read(null, ));
+		$this->set('payment', $this->Payment->read(null, $id));
 	}
 	
 	/**
@@ -50,7 +50,7 @@ class CartPaymentsController extends AppController {
 	 * @access public
 	 */
 	function add() {
-		if (!empty(->data)) {
+		if (!empty($this->data)) {
 			$this->Payment->create();
 			if ($this->Payment->save($this->data)) {
 				$this->Session->setFlash(__('The Payment has been saved', true));
@@ -80,8 +80,8 @@ class CartPaymentsController extends AppController {
 				$this->Session->setFlash(__('The Payment could not be saved. Please, try again.', true));
 			}
 		}
-		if (empty(->data)) {
-			$this->data = ->Payment->read(null, $id);
+		if (empty($this->data)) {
+			$this->data = $this->Payment->read(null, $id);
 		}
 	}
 
