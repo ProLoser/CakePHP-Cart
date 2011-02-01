@@ -1,12 +1,12 @@
 <?php
-class PaymentGatewaySource extends DataSource {
+class InstantPaymentNotificationSource extends DataSource {
 	/**
 	 * Description string for this Data Source.
 	 *
 	 * @var string
 	 * @access public
 	 */
-	var $description = 'Payment Gateway Datasource';
+	var $description = 'Instant Payment Notification Datasource';
 	
 	/**
 	 * Http is the HttpSocket Object.
@@ -49,7 +49,7 @@ class PaymentGatewaySource extends DataSource {
 	 */
 	protected function _map($mode = null) {
 		Configure::load($this->config['driver']);
-		$map = Configure::read($this->map['driver']);
+		$map = Configure::read($this->config['driver']);
 		if (isset($this->config['testing']) && isset($map['testing'])) {
 			$map = array_merge($map['defaults'], $map['testing']);
 		} elseif ($mode && $mode != 'defaults') {

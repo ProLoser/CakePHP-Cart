@@ -6,7 +6,7 @@
  * @package Cart.Datasource
  * @author Dean
  */
-class Paypal extends PaymentGatewaySource {
+class Paypal extends InstantPaymentNotificationSource {
 	
 	/**
 	 * Verifies POST data given by the paypal instant payment notification
@@ -16,10 +16,9 @@ class Paypal extends PaymentGatewaySource {
 	 */
 	function ipn($data) {		
 		$data['cmd'] = '_notify-validate';
-		
 		if (
-			((isset($data['test_ipn']) && empty($this->config['testing'])) 
-			|| (!isset($data['test_ipn']) && !empty($this->config['testing'])))
+			((isset($data['test_ipn']) && !empty($this->config['testing'])) 
+			|| (!isset($data['test_ipn']) && empty($this->config['testing'])))
 			&& parent::ipn($data) && $this->_checkEmail($data)
 		) {
 			return true;
@@ -29,7 +28,7 @@ class Paypal extends PaymentGatewaySource {
 	}
 	
 	protected function _checkEmail($data) {
-		return ($data['receiver_email'] == $this->config['login']);
+		return ($data['receiver_email'] == $this->config['email']);
 	}
 	
 	/**
