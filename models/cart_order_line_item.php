@@ -9,7 +9,7 @@
  * @version $Id$
  * @copyright 
  **/
-class CartOrderLineItem extends AppModel {
+class CartOrderLineItem extends CartAppModel {
 	var $name = 'CartOrderLineItem';
 	var $belongsTo = array(
 		'CartOrder' => array(

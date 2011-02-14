@@ -9,7 +9,7 @@
  * @version $Id$
  * @copyright 
  **/
-class CartPayment extends AppModel {
+class CartPayment extends CartAppModel {
 	var $name = 'CartPayment';
 	var $actsAs = array(
 		'Cart.PaymentGateway',

@@ -10,7 +10,7 @@
  * @copyright 
  **/
 
-class CartPaymentsController extends AppController {
+class CartPaymentsController extends CartAppController {
 	var $name = 'CartPayments';
 
 	var $helpers = array('Html', 'Form');

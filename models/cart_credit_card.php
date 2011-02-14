@@ -9,7 +9,7 @@
  * @version $Id$
  * @copyright 
  **/
-class CartCreditCard extends AppModel {
+class CartCreditCard extends CartAppModel {
 	var $name = 'CartCreditCard';
 	var $useTable = false;
 	var $actsAs = array(

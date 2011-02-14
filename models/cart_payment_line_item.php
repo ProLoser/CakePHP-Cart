@@ -9,7 +9,7 @@
  * @version $Id$
  * @copyright 
  **/
-class CartPaymentLineItem extends AppModel {
+class CartPaymentLineItem extends CartAppModel {
 	var $name = 'CartPaymentLineItem';
 	var $belongsTo = array(
 		'CartPayment' => array(

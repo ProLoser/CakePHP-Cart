@@ -9,8 +9,30 @@
  * @version $Id$
  * @copyright 
  **/
-
 class ButtonHelper extends AppHelper {
+	
+	var $config;
+	
+	function __construct($settings = null) {
+		$this->load($settings);
+		parent::__construct();
+	}
+	
+	function load($settings) {
+		if (empty($settings) || !empty($this->settings))
+			return false;
+		App::Import('ConnectionManager');
+        $ds = ConnectionManager::getDataSource($settings);
+        $this->config = $ds->config;
+        Configure::load($this->config['driver']);
+        $this->settings = Configure::read($this->config['driver']);
+        
+        if (!empty($this->config['testing']) && $this->config['testing']) {
+        	$this->settings = array_merge($this->settings['defaults'], $this->settings['testing']);
+        } else {
+        	$this->settings = $this->settings['defaults'];
+        }
+	}
 
 	/**
 	 * An array containing the names of helpers this controller uses. The array elements should
@@ -20,22 +42,6 @@ class ButtonHelper extends AppHelper {
 	 * @access protected
 	 */
 	var $helpers = array('Html', 'Form');
-	
-	var $config;
-	
-	
-	function __construct($settings = null) {
-		$this->load($settings);
-		parent::__construct();
-	}
-	
-	function load($settings) {
-		if (empty($settings))
-			return false;
-		App::Import('ConnectionManager');
-        $ds = ConnectionManager::getDataSource($settings);
-        $this->config = $ds->config;
-	}
 
 	/**
 	 *  function button will create a complete form button to Pay Now, Donate, Add to Cart, or Subscribe using the paypal service.
@@ -80,9 +86,8 @@ class ButtonHelper extends AppHelper {
 		if(is_array($title)){
 			$options = $title;
 			$title = isset($options['label']) ? $options['label'] : null;
-		}    
-		$defaults = (isset($options['test']) && $options['test']) ? $this->config->testSettings : $this->config->settings; 
-		$options = array_merge($defaults, $options);
+		}
+		$options = array_merge($this->settings, $options);
 		$options['type'] = (isset($options['type'])) ? $options['type'] : "paynow";
 		
 		switch($options['type']){
@@ -127,11 +132,13 @@ class ButtonHelper extends AppHelper {
 		}
 		
 		$title = (empty($title)) ? $default_title : $title;
-		$retval = "<form action='{$options['server']}/cgi-bin/webscr' method='post'><div class='paypal-form'>";
+		$retval = "<form action='{$options['server']}' method='post'>";
 		unset($options['server']);
+		$retval .= "<div class='paypal-form'>";
 		foreach($options as $name => $value){
 			 $retval .= $this->__hiddenNameValue($name, $value);
 		}
+		$retval .= "</div>";
 		$retval .= $this->__submitButton($title);
 		
 		return $retval;
@@ -156,7 +163,7 @@ class ButtonHelper extends AppHelper {
 	 * @return Html form button and close form
 	 */
 	function __submitButton($text){
-		return "</div>" . $this->Form->end(array('label' => $text));
+		return $this->Form->end(array('label' => $text));
 	}
 	
 	/**

@@ -9,7 +9,7 @@
  * @version $Id$
  * @copyright 
  **/
-class CartOrder extends AppModel {
+class CartOrder extends CartAppModel {
 	var $name = 'CartOrder';
 	var $hasMany = array(
 		'CartOrderLineItem' => array(
