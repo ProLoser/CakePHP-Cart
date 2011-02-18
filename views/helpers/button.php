@@ -26,7 +26,7 @@ class ButtonHelper extends AppHelper {
         $this->config = $ds->config;
         Configure::load($this->config['driver']);
         $this->settings = Configure::read($this->config['driver']);
-        
+        $this->fieldMap = $this->settings['fieldmap'];
         if (!empty($this->config['testing']) && $this->config['testing']) {
         	$this->settings = array_merge($this->settings['defaults'], $this->settings['testing']);
         } else {
