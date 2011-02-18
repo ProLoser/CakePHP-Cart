@@ -1,3 +1,0 @@
-[submodule "vendors/aktive_merchant"]
-	path = vendors/aktive_merchant
-	url = git://github.com/ProLoser/Aktive-Merchant.git
