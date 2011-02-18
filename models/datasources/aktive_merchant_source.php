@@ -50,7 +50,7 @@ class AktiveMerchantSource extends DataSource {
 	 */
 	function __construct($config){
 		parent::__construct($config);
-		App::Import('Vendor', 'Cart.AktiveMerchant', array('file' => 'lib'.DS.'merchant.php'));
+		App::Import('Vendor', 'AktiveMerchant', array('file' => 'lib'.DS.'merchant.php'));
 		$this->_load();
 	}
 	
