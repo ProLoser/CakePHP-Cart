@@ -89,7 +89,7 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 * @return $PaymentGatewayDatasource instance for calling methods
 	 * @author Dean
 	 */
-	public function _loadGateway(&$Model, $gatewayConfig = null) {
+	public function loadGateway(&$Model, $gatewayConfig = null) {
 		App::import('Model', 'ConnectionManager', false);
 		if (!$gatewayConfig) {
 			 $gatewayConfig = $this->settings[$Model->name]['gateway'];
@@ -99,7 +99,7 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	
 	public function purchase(&$Model, $amount, $data) {
 		$this->_callback($Model, 'beforePurchase', array($amount, $data));
-		$gateway = $this->_loadGateway($Model);
+		$gateway = $this->loadGateway($Model);
 		$gateway->urls = $this->settings[$Model->name]['urls'];
 		$success = $gateway->purchase($amount, $data);
 		if (!$success) {
@@ -118,7 +118,7 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	public function ipn(&$Model, $data) {
 		$this->_callback($Model, 'beforeIpn', array($data, $this->settings[$Model->name]['gateway']));
 		if(!empty($data)){
-			$gateway = $this->_loadGateway($Model);
+			$gateway = $this->loadGateway($Model);
 			$result = $gateway->ipn($data);
 			$this->_callback($Model, 'afterIpn', array($result));
 			return $result;
@@ -133,7 +133,7 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 * @return array of cakePHP friendly association array.
 	 */
 	public function extractLineItems(&$Model, $data) {
-		$gateway = $this->_loadGateway($Model);
+		$gateway = $this->loadGateway($Model);
 		return $gateway->extractLineItems($data);
 	}
 }
