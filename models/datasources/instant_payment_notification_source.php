@@ -48,7 +48,9 @@ class InstantPaymentNotificationSource extends DataSource {
 	 * @author Dean
 	 */
 	protected function _map($mode = null) {
-		Configure::load($this->config['driver']);
+        $config = explode('.', $this->config['driver']);
+        $config[1] = Inflector::underscore($config[1]);
+        Configure::load(implode('.', $config));
 		$map = Configure::read($this->config['driver']);
 		if (isset($this->config['testing']) && isset($map['testing'])) {
 			$map = array_merge($map['defaults'], $map['testing']);

@@ -24,7 +24,9 @@ class ButtonHelper extends AppHelper {
 		App::Import('ConnectionManager');
         $ds = ConnectionManager::getDataSource($settings);
         $this->config = $ds->config;
-        Configure::load($this->config['driver']);
+        $config = explode('.', $this->config['driver']);
+        $config[1] = Inflector::underscore($config[1]);
+        Configure::load(implode('.', $config));
         $this->settings = Configure::read($this->config['driver']);
         $this->fieldMap = $this->settings['fieldmap'];
         if (!empty($this->config['testing']) && $this->config['testing']) {
