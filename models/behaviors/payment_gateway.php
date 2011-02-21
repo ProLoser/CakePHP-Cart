@@ -22,6 +22,7 @@ class PaymentGatewayBehavior extends ModelBehavior {
 		'gateway' => null,
 		// For PaypalExpress Only
 		'urls' => array(
+			'complete_return_url' => 'http://example.com/complete',
 			'cancel_return_url' => 'http://example.com/cancel',
 			'error_return_url' => 'http://example.com/error',
 		)
