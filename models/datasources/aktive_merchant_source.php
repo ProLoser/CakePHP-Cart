@@ -50,7 +50,6 @@ class AktiveMerchantSource extends DataSource {
 	 */
 	function __construct($config){
 		parent::__construct($config);
-		App::Import('Vendor', 'AktiveMerchant', array('file' => 'lib'.DS.'merchant.php'));
 		$this->_load();
 	}
 	
@@ -62,6 +61,7 @@ class AktiveMerchantSource extends DataSource {
 	 * @author Dean
 	 */
 	function _load($options = array()) {
+		App::Import('Vendor', 'AktiveMerchant', array('file' => 'aktive_merchant'.DS.'lib'.DS.'merchant.php'));
 		if (isset($this->config['testing']) && $this->config['testing']) {
 			Merchant_Billing_Base::mode('test');
 		}
