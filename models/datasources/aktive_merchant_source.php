@@ -157,12 +157,7 @@ class AktiveMerchantSource extends DataSource {
 	 * @author Dean
 	 */
 	protected function _startPurchase($amount, $data) {
-		$pageURL = (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on") ? "https://" : "http://";
-		if ($_SERVER["SERVER_PORT"] != "80") {
-			$pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
-		} else {
-			$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
-		}
+		$pageURL = Router::url(null, true);
 		$options = array(
 			'description' => $data['description'],
 			'return_url' => $pageURL,
