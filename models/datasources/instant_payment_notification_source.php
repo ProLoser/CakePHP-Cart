@@ -100,7 +100,7 @@ class InstantPaymentNotificationSource extends DataSource {
 	public function ipn($data) {
 		$response = $this->submit($data);
 		
-		return $this->checkResponse($response);
+		return ($this->checkResponse($response) && $this->checkEmail($data));
 	}
 	
 	/**
@@ -115,7 +115,7 @@ class InstantPaymentNotificationSource extends DataSource {
 	}
 	
 	/**
-	 * Scans the returned response from $this->verify() and gives an understandable response
+	 * Checks Paypal postback to see if it is valid
 	 *
 	 * @param string $response 
 	 * @return boolean
@@ -129,6 +129,36 @@ class InstantPaymentNotificationSource extends DataSource {
 			$this->log('HTTP Error in PaymentGatewayDatasource::checkResponse while posting back to gateway', 'cart');
 		}
 		return false;
+	}
+	
+	/**
+	 * Checks to see if the email in the ipn data matches the database config
+	 *
+	 * @param string $response 
+	 * @return boolean
+	 * @author Dean
+	 */
+	public function checkEmail($data) {
+		// TODO: Change 'receiver_email' to mapped item
+		if ($data['receiver_email'] == $this->config['email']) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Checks to see if the testing flag is set in the ipn data
+	 *
+	 * @param string $response 
+	 * @return boolean
+	 * @author Dean
+	 */
+	public function checkTesting($data) {
+		// TODO: Change 'test_ipn' to mapped item
+		if (empty($data['test_ipn'])) {
+			return false;
+		}
+		return true;
 	}
 }
 ?>
