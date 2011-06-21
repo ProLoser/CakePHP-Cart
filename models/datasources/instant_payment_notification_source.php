@@ -97,7 +97,10 @@ class InstantPaymentNotificationSource extends DataSource {
 	 * @return boolean
 	 * @author Dean
 	 */
-	public function ipn($data) {
+	public function ipn($data = null) {
+		if (empty($data)) {
+			$data = $_POST;
+		}
 		$response = $this->submit($data);
 		
 		return ($this->checkResponse($response) && $this->checkEmail($data));
