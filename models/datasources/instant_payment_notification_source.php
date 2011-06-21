@@ -139,8 +139,7 @@ class InstantPaymentNotificationSource extends DataSource {
 	 * @author Dean
 	 */
 	public function checkEmail($data) {
-		// TODO: Change 'receiver_email' to mapped item
-		if ($data['receiver_email'] == $this->config['email']) {
+		if ($data[$this->map['ipn']['email_fieldname']] == $this->config['email']) {
 			return true;
 		}
 		return false;
@@ -154,8 +153,7 @@ class InstantPaymentNotificationSource extends DataSource {
 	 * @author Dean
 	 */
 	public function checkTesting($data) {
-		// TODO: Change 'test_ipn' to mapped item
-		if (empty($data['test_ipn'])) {
+		if (empty($data[$this->map['ipn']['testing_fieldname']])) {
 			return false;
 		}
 		return true;
