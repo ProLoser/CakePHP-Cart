@@ -11,6 +11,11 @@ $config['Cart']['Paypal'] = array(
 		'fields' => array(
 			
 		),
+		// Other Options
+		'ipn' => array(
+			'email_fieldname' => 'receiver_email',
+			'testing_fieldname' => 'test_ipn',
+		),
 	),
 	// Testing settings are automatically merged with defaults
 	'testing' => array(
