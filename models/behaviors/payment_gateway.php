@@ -19,7 +19,6 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 * @var string
 	 */
 	var $defaults = array(
-		'gateway' => null,
 		// For PaypalExpress Only
 		'urls' => array(
 			'complete_return_url' => 'http://example.com/complete',
@@ -61,18 +60,6 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	}
 	
 	/**
-	 * Used to adjust the payment gateway before using the behavior
-	 *
-	 * @param string $Model 
-	 * @param string $gatewayConfig 
-	 * @return void
-	 * @author Dean
-	 */
-	public function setGateway(&$Model, $gatewayConfig) {
-		$this->settings[$Model->name]['gateway'] = $gatewayConfig;
-	}
-	
-	/**
 	 * Used for setting the 'cancel_return_url' and/or 'error_return_url' for PaypalExpress
 	 *
 	 * @param object $Model 
@@ -90,23 +77,26 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 * @return $PaymentGatewayDatasource instance for calling methods
 	 * @author Dean
 	 */
-	public function loadGateway(&$Model, $gatewayConfig = null) {
+	public function loadGateway(&$Model) {
 		App::import('Model', 'ConnectionManager', false);
-		if (!$gatewayConfig) {
-			 $gatewayConfig = $this->settings[$Model->name]['gateway'];
-		}
-		return ConnectionManager::getDataSource($gatewayConfig);
+		return ConnectionManager::getDataSource($Model->useDbConfig);
 	}	
 	
 	public function purchase(&$Model, $amount, $data) {
-		$this->_callback($Model, 'beforePurchase', array($amount, $data));
+		$data['amount'] = $amount;
+		$continue = $this->_callback($Model, 'beforePurchase', array($data));
+		if ($continue === false) {
+			return false;
+		} elseif ($continue) {
+			$data = $continue;
+		}
 		$gateway = $this->loadGateway($Model);
 		$gateway->urls = $this->settings[$Model->name]['urls'];
-		$success = $gateway->purchase($amount, $data);
+		$success = $gateway->purchase($data['amount'], $data);
 		if (!$success) {
 			$Model->error = $gateway->error;
 		}
-		$this->_callback($Model, 'afterPurchase', array($success));
+		$this->_callback($Model, 'afterPurchase', array($data, $success));
 		return $success;
 	}
 	
@@ -117,12 +107,17 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 * @return boolean true | false depending on if data received is actually valid from paypal and not from some script monkey
 	 */
 	public function ipn(&$Model, $data) {
-		$this->_callback($Model, 'beforeIpn', array($data, $this->settings[$Model->name]['gateway']));
+		$continue = $this->_callback($Model, 'beforeIpn', array($data));
+		if ($continue === false) {
+			return false;
+		} elseif ($continue) {
+			$data = $continue;
+		}
 		if(!empty($data)){
 			$gateway = $this->loadGateway($Model);
-			$result = $gateway->ipn($data);
-			$this->_callback($Model, 'afterIpn', array($result));
-			return $result;
+			$success = $gateway->ipn($data);
+			$this->_callback($Model, 'afterIpn', array($data, $success));
+			return true;
 		}
 		return false;
 	}
