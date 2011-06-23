@@ -97,7 +97,7 @@ class PaymentGatewayBehavior extends ModelBehavior {
 			$data = $continue;
 		}
 		$gateway = $this->loadGateway($Model);
-		$gateway->urls = $this->settings[$Model->name]['urls'];
+		$gateway->setUrls($this->settings[$Model->name]['urls']);
 		$success = $gateway->purchase($data['amount'], $data);
 		if (!$success) {
 			$Model->error = $gateway->error;
@@ -121,6 +121,7 @@ class PaymentGatewayBehavior extends ModelBehavior {
 		}
 		if(!empty($data)){
 			$gateway = $this->loadGateway($Model);
+			$gateway->setUrls($this->settings[$Model->name]['urls']);
 			$success = $gateway->ipn($data);
 			$this->_callback($Model, 'afterIpn', array($data, $success));
 			return true;
