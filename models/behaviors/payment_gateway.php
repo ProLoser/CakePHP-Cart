@@ -21,9 +21,10 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	var $defaults = array(
 		// For PaypalExpress Only
 		'urls' => array(
-			'complete_return_url' => 'http://example.com/complete',
-			'cancel_return_url' => 'http://example.com/cancel',
-			'error_return_url' => 'http://example.com/error',
+			'complete' => 'http://example.com/complete', // Arrays are also allowed
+			'cancel' => 'http://example.com/cancel',
+			'error' => 'http://example.com/error',
+			'notify' => 'http://example.com/ipn',
 		)
 	);
 	
@@ -63,12 +64,17 @@ class PaymentGatewayBehavior extends ModelBehavior {
 	 * Used for setting the 'cancel_return_url' and/or 'error_return_url' for PaypalExpress
 	 *
 	 * @param object $Model 
-	 * @param array $urls array('cancel_return_url' => 'http://localhost/cancel', 'error_return_url' => 'http://localhost/error')
+	 * @param mixed $urls array('cancel' => 'http://localhost/cancel') OR 'complete'
+	 * @param mixed $value used when setting only 1 url, provide the value url specified for preceeding argument
 	 * @return void
 	 * @author Dean
 	 */
-	public function setUrls(&$Model, $urls) {
-		$this->settings[$Model->name]['urls'] = $urls;
+	public function setUrls(&$Model, $urls, $value = null) {
+		if (!is_array($urls) && $value) {
+			$this->settings[$Model->name]['urls'][$urls] = $value;
+		} else {
+			$this->settings[$Model->name]['urls'] = $urls;
+		}
 	}
 	
 	/**
