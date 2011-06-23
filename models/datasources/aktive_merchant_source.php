@@ -176,6 +176,18 @@ class AktiveMerchantSource extends DataSource {
 		$response = $this->gateway->get_details_for($_GET['token'], $_GET['PayerID']);
 		return $this->gateway->purchase($response->amount());
 	}
+
+	/**
+	 * Changes the keys for the urls to be compatible with the AktiveMerchant vendor
+	 *
+	 * @return array $urls
+	 */
+	public function setUrls($urls) {
+		if (isset($urls['complete']))
+			$this->urls['return_url'] = $urls['complete'];
+		if (isset($urls['cancel']))
+			$this->urls['cancel_return_url'] = $urls['cancel'];
+	}
 	
 }
 ?>
