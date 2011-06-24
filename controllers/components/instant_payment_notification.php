@@ -1,91 +1,76 @@
 <?php
 /**
  * InstantPaymentNotificationComponent
- * 
- * Depends on Payment Gateway Behavior
  *
- * @package default
- * @author Dean
- * @version $Id$
- * @copyright 
+ * @package Cart Plugin
  **/
-
 class InstantPaymentNotificationComponent extends Object {
+	
+	var $config;
+	var $map;
 
-/**
- * Array containing the names of components this component uses. Component names
- * should not contain the "Component" portion of the classname.
- *
- * @var array
- * @access public
- */
-	var $components = array();
-
-/**
- * Called before the Controller::beforeFilter().
- *
- * @param object  A reference to the controller
- * @return void
- * @access public
- * @link http://book.cakephp.org/view/65/MVC-Class-Access-Within-Components
- */
+	/**
+	 * Called before the Controller::beforeFilter().
+	 *
+	 * @param object  A reference to the controller
+	 * @return void
+	 * @access public
+	 * @link http://book.cakephp.org/view/65/MVC-Class-Access-Within-Components
+	 */
 	function initialize(&$controller, $settings = array()) {
 		if (!isset($this->__settings[$controller->name])) {
-			$settings = $this->__settings[$controller->name];
+			$this->__settings[$controller->name] = $settings;
 		}
-	}
-
-/**
- * Called after the Controller::beforeFilter() and before the controller action
- *
- * @param object  A reference to the controller
- * @return void
- * @access public
- * @link http://book.cakephp.org/view/65/MVC-Class-Access-Within-Components
- */
-	function startup(&$controller) {
-	}
-
-/**
- * Called after the Controller::beforeRender(), after the view class is loaded, and before the
- * Controller::render()
- *
- * @param object  A reference to the controller
- * @return void
- * @access public
- */
-	function beforeRender(&$controller) {
-	}
-
-/**
- * Called after Controller::render() and before the output is printed to the browser.
- *
- * @param object  A reference to the controller
- * @return void
- * @access public
- */
-	function shutdown(&$controller) {
-	}
-
-/**
- * Called before Controller::redirect()
- *
- * @param object  A reference to the controller
- * @param mixed  A string or array containing the redirect location
- * @access public
- */
-	function beforeRedirect(&$controller, $url, $status = null, $exit = true) {
 	}
 	
 	/**
-	 * Checks to see if the payment is valid
+	 * Loads the datasource map and configuration into the helper for reference
 	 *
-	 * @param string $gateway 
-	 * @return void
-	 * @author Dean
+	 * @param string $dbConfig name of db configuration to reference for the datasource 
+	 * @author Dean Sofer
 	 */
-	public function process(&$controller, $gatewayConfig = null) {
-		$controller->{$controller->modelClass}->validIpn($_POST, $gatewayConfig);
+	function load($dbConfig) {
+		if (empty($dbConfig))
+			return false;
+		App::Import('ConnectionManager');
+        $ds = ConnectionManager::getDataSource($settings);
+        $this->config = $ds->config;
+		$this->map = $ds->map;
+	}
+	
+	/**
+	 * Returns a payment url with all the details about the payment as $_GET variables.
+	 * Useful if you want to save a transaction before payment seamlessly to the user.
+	 *
+	 * WHAT? Paypal buttons POST to paypal, you can't save the form beforehand.
+	 * This is a workaround. Refer to https://github.com/ProLoser/CakePHP-Cart/wiki/Examples
+	 *
+	 * @param string $data
+	 */
+	public function paymentUrl($data, $urls = array()) {
+		// TODO This is the paypal-specific keys used for each value. Needs to be abstracted
+		$urlAliases = array(
+			'complete' => 'return',
+			'notify' => 'notify_url',
+			'cancel' => 'cancel_return',
+			'error' => '',
+		);
+		$url = $this->map['server'];
+		$params = array(
+			'cmd' => '_xclick',
+			'business' => $this->config['email'],
+			'currency_code' => $this->config['currency'],
+		);
+		foreach ($urlAliases as $alias => $key) {
+			if (isset($urls[$alias])) {
+				if (is_array($urls[$alias])) {
+					$urls[$alias] = Router::url($urls[$alias]);
+				}
+				$params[$key] = $urls[$alias];
+			}
+		}
+		$url .= '?' . http_build_query(array_merge($params, $data));
+		return $url;
 	}
 }
 ?>
