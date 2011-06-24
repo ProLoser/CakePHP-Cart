@@ -5,9 +5,6 @@
  * A payment towards an order. Usually covers the entire order at once.
  *
  * @package Cart Plugin
- * @author Dean
- * @version $Id$
- * @copyright 
  **/
 class CartPayment extends CartAppModel {
 	var $name = 'CartPayment';
@@ -33,13 +30,13 @@ class CartPayment extends CartAppModel {
 	 * @return void
 	 * @author Dean
 	 */
-	public function process($data, $gatewayConfig = null) {
-		if ($this->Payment->isValid($data, $gatewayConfig)) {
+	public function processIpn($data) {
+		if ($this->ipn($data)) {
 			$payment['CartPayment'] = $data;
 			if (isset($data['invoice'])) {
 				$payment['CartPayment']['cart_order_id'] = $data['invoice'];
 			}
-			$payment['CartPaymentLineItem'] = $this->extractLineItems($data, $gatewayConfig);
+			$payment['CartPaymentLineItem'] = $this->extractLineItems($data);
 			$this->Payment->saveAll($payment);
 		}
 	}

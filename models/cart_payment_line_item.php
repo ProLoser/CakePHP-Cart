@@ -5,9 +5,6 @@
  * [Short Description]
  *
  * @package Cart Plugin
- * @author Dean
- * @version $Id$
- * @copyright 
  **/
 class CartPaymentLineItem extends CartAppModel {
 	var $name = 'CartPaymentLineItem';
